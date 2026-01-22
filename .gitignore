@@ -1,0 +1,37 @@
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Tests / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type checkers / caches
+.mypy_cache/
+
+# Environment variables
+.env
+
+# IDEs / editors
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Databases / logs
+*.sqlite3
+*.db
+*.log
