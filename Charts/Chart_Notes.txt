@@ -2,42 +2,48 @@ https://mermaid.live/
 
 erDiagram
     USER ||--o{ STORY : creates
-    STORY ||--o{ MEDIA_ASSET : contains
-    STORY }|--|{ CHARACTER : features
-    STORY ||--o{ PIPELINE_LOG : generates
+    STORY ||--o{ EPISODE : "consists of"
+    STORY }|--|{ CHARACTER : "belongs to"
+    
+    EPISODE ||--o{ CHARACTER : features
+    EPISODE ||--o{ MEDIA_ASSET : "has background"
+    EPISODE }|--|| THEME_KNOWLEDGE : "pulls insight from"
 
     STORY {
         uuid id PK
         string title
-        text input_prompt
-        text full_text
-        string status
-        timestamp created_at
+        text world_setting
+    }
+
+    EPISODE {
+        uuid id PK
+        uuid story_id FK
+        int sequence_number
+        string theme_keyword "e.g., Betrayal"
+        text theme_insight "Retrieved from Vector DB"
+        text plot_summary
+        text full_script
     }
 
     CHARACTER {
         uuid id PK
+        uuid story_id FK
         string name
+        string keywords "e.g., knight, tall, nervous"
         text description
-        vector embedding "Used for RAG"
-        json metadata
+    }
+
+    THEME_KNOWLEDGE {
+        uuid id PK
+        string topic "e.g., Betrayal"
+        vector embedding "Vector of the book text"
+        text source_text "The actual knowledge from your book"
     }
 
     MEDIA_ASSET {
         uuid id PK
-        uuid story_id FK
-        enum type "audio, image, video"
-        string file_url
-        text prompt
-        float timestamp_offset
-    }
-
-    PIPELINE_LOG {
-        uuid id PK
-        uuid story_id FK
-        string step_name
-        int duration_ms
-        string status
+        uuid episode_id FK
+        string image_url
     }
 
 
