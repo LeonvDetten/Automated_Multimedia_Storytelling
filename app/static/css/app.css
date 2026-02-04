@@ -1,0 +1,109 @@
+:root {
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --text: #152238;
+  --muted: #4b5870;
+  --border: #d9deea;
+  --accent: #0d6efd;
+  --error: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top left, #e5ecff, var(--bg) 60%);
+  color: var(--text);
+}
+
+.header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.container {
+  padding: 1.5rem 2rem 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.form-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+input,
+select,
+textarea,
+button {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  font: inherit;
+}
+
+button {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.status-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #fbfdff;
+}
+
+.status-card.error {
+  border-color: #f1b2ad;
+  color: var(--error);
+  background: #fff5f4;
+}
+
+.recent-list {
+  padding-left: 1rem;
+}
+
+.prompt-block {
+  white-space: pre-wrap;
+  background: #f8f9fc;
+  border: 1px solid var(--border);
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header,
+  .container {
+    padding: 1rem;
+  }
+}

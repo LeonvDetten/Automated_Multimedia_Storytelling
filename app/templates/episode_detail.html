@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<article class="panel">
+  <h2>Episode #{{ episode.id }}</h2>
+  <p><strong>Title:</strong> {{ episode.title }}</p>
+  <p><strong>Status:</strong> {{ episode.status }}</p>
+  <p><strong>Theme ID:</strong> {{ episode.theme_id }}</p>
+  <p><strong>Series ID:</strong> {{ episode.series_id }}</p>
+  <p><strong>Continuation from:</strong> {{ episode.continuation_from_episode_id or "None" }}</p>
+  <p><strong>Target duration:</strong> {{ episode.target_duration_sec }} seconds</p>
+
+  <h3>User prompt</h3>
+  <pre class="prompt-block">{{ episode.user_prompt }}</pre>
+
+  <p><a href="/">Back to input form</a></p>
+</article>
+{% endblock %}

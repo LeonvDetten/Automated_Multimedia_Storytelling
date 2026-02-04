@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="grid">
+  <article class="panel">
+    <h2>Create Episode</h2>
+    <form
+      hx-post="/web/episodes/create"
+      hx-target="#job-result"
+      hx-swap="innerHTML"
+      class="form-stack"
+    >
+      <label>
+        Story prompt
+        <textarea name="user_prompt" rows="6" required placeholder="Describe what should happen in this episode..."></textarea>
+      </label>
+
+      <label>
+        Theme
+        <select name="theme_id" required>
+          {% for theme in themes %}
+          <option value="{{ theme.id }}">{{ theme.label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Story series
+        <select name="series_id">
+          {% for item in series %}
+          <option value="{{ item.id }}">{{ item.title }} ({{ item.language }})</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Continue from episode (optional)
+        <select name="continuation_from_episode_id">
+          <option value="">No continuation</option>
+          {% for item in recent_episodes %}
+          <option value="{{ item.id }}">#{{ item.id }} - {{ item.title }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Characters
+        <select name="character_ids" multiple size="6">
+          {% for character in characters %}
+          <option value="{{ character.id }}">{{ character.name }} - {{ character.speech_style }}</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <label>
+        Episode title (optional)
+        <input type="text" name="title" placeholder="Generated Episode" />
+      </label>
+
+      <label>
+        Target duration (seconds)
+        <input type="number" name="target_duration_sec" value="15" min="5" max="120" />
+      </label>
+
+      <button type="submit">Create Episode Job</button>
+    </form>
+  </article>
+
+  <article class="panel">
+    <h2>Job Status</h2>
+    <div id="job-result">
+      <p>No active job yet. Submit the form to start one.</p>
+    </div>
+
+    <h3>Recent episodes</h3>
+    <ul class="recent-list">
+      {% for item in recent_episodes %}
+      <li><a href="/web/episodes/{{ item.id }}">#{{ item.id }} - {{ item.title }}</a></li>
+      {% else %}
+      <li>No episodes yet.</li>
+      {% endfor %}
+    </ul>
+  </article>
+</section>
+{% endblock %}

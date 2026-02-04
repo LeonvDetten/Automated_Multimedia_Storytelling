@@ -1,0 +1,22 @@
+{% if error_message %}
+<div class="status-card error">
+  <strong>Error:</strong> {{ error_message }}
+</div>
+{% elif job %}
+<div
+  class="status-card"
+  {% if job.status != "completed" %}
+  hx-get="/web/jobs/{{ job.id }}/status"
+  hx-trigger="load delay:700ms"
+  hx-swap="outerHTML"
+  {% endif %}
+>
+  <p><strong>Job #{{ job.id }}</strong></p>
+  <p>Status: {{ job.status }}</p>
+  <p>Step: {{ job.step }}</p>
+  <p>Progress: {{ job.progress_pct }}%</p>
+  {% if job.status == "completed" %}
+  <p><a href="/web/episodes/{{ episode_id }}">Open episode details</a></p>
+  {% endif %}
+</div>
+{% endif %}
