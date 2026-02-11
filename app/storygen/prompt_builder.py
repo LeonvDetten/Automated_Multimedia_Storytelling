@@ -33,7 +33,8 @@ def build_prompt(context: StoryContext) -> str:
     prompt = (
         "You are a professional story writer for a fairy-tale style series.\n"
         "Write in English. Output only the story text (no headings, no bullet points, no meta commentary).\n"
-        "Length: 600–900 words, unless the user prompt clearly requests shorter.\n"
+        f"Target length: about {context.target_words} words (do not exceed).\n"
+        "If you are near the limit, wrap up quickly and resolve the main conflict. No cliffhanger.\n"
         "Tone: vivid, cinematic, emotionally resonant, suitable for narration.\n"
         "Structure: strong opening hook, clear rising tension, satisfying resolution.\n"
         "Theme handling: weave the theme subtly through actions, symbols, and choices.\n"

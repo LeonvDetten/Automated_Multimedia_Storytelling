@@ -54,6 +54,15 @@ class StoryContext:
     episode_number: int | None
     continuation: ContinuationContext | None
     characters: list[CharacterProfile]
+    max_output_tokens: int
+    target_words: int
+
+
+def estimate_target_words(max_output_tokens: int | None) -> int:
+    """Estimate a word target based on the max token budget."""
+
+    token_budget = max_output_tokens or 800
+    return max(120, round(token_budget * 0.75))
 
 
 def build_story_context(db: Session, payload: EpisodeCreate) -> StoryContext:
@@ -114,4 +123,6 @@ def build_story_context(db: Session, payload: EpisodeCreate) -> StoryContext:
         episode_number=episode_number,
         continuation=continuation,
         characters=characters,
+        max_output_tokens=payload.max_output_tokens or 800,
+        target_words=estimate_target_words(payload.max_output_tokens),
     )

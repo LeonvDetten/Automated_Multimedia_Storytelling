@@ -109,7 +109,8 @@
 
         <label>
           Max text length (tokens)
-          <input type="number" name="max_output_tokens" value="800" min="50" max="4000" />
+          <input id="max_output_tokens" type="number" name="max_output_tokens" value="800" min="50" max="4000" />
+          <span class="hint-text">≈ <span id="token-word-estimate">600</span> words</span>
         </label>
       </div>
 
@@ -244,11 +245,24 @@
     output.textContent = Number.isNaN(numericValue) ? value : numericValue.toFixed(2);
   }
 
+  function updateWordEstimate(value) {
+    const output = document.getElementById("token-word-estimate");
+    if (!output) return;
+    const tokens = Number.parseInt(value, 10);
+    if (Number.isNaN(tokens) || tokens <= 0) {
+      output.textContent = "—";
+      return;
+    }
+    const words = Math.max(120, Math.round(tokens * 0.75));
+    output.textContent = String(words);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const standaloneSelect = document.getElementById("is_standalone");
     const seriesSelect = document.getElementById("series_id");
     const newSeriesInput = document.getElementById("new_series_title");
     const temperatureInput = document.getElementById("temperature");
+    const maxTokensInput = document.getElementById("max_output_tokens");
 
     if (standaloneSelect) {
       standaloneSelect.addEventListener("change", toggleStandaloneFields);
@@ -276,6 +290,11 @@
 
     if (temperatureInput) {
       updateTemperatureValue(temperatureInput.value);
+    }
+
+    if (maxTokensInput) {
+      maxTokensInput.addEventListener("input", () => updateWordEstimate(maxTokensInput.value));
+      updateWordEstimate(maxTokensInput.value);
     }
   });
 </script>
