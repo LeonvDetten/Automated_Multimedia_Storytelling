@@ -14,6 +14,16 @@
   <p><strong>Continuation from:</strong> {{ episode.continuation_from_episode_id or "None" }}</p>
   <p><strong>Target duration:</strong> {{ episode.target_duration_sec }} seconds</p>
   <p><strong>Temperature:</strong> {{ episode.temperature if episode.temperature is not none else "Auto" }}</p>
+  <p>
+    <strong>Temperature applied:</strong>
+    {% if episode.temperature is none %}
+      Auto (no manual setting)
+    {% elif episode.temperature_applied %}
+      Applied
+    {% else %}
+      Not applied (model ignored)
+    {% endif %}
+  </p>
   <p><strong>Max tokens:</strong> {{ episode.max_output_tokens if episode.max_output_tokens is not none else "Auto" }}</p>
 
   <h3>Characters</h3>

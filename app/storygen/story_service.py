@@ -1,3 +1,5 @@
+from typing import Any
+
 from sqlalchemy.orm import Session
 
 from app.schemas.episode import EpisodeCreate
@@ -6,7 +8,7 @@ from app.storygen.prompt_builder import build_prompt
 from app.storygen.story_context import build_story_context
 
 
-def generate_story(db: Session, payload: EpisodeCreate, openai_client: OpenAIClient) -> str:
+def generate_story(db: Session, payload: EpisodeCreate, openai_client: OpenAIClient) -> dict[str, Any]:
     """Main entry point for story generation.
 
     Steps:
@@ -24,8 +26,4 @@ def generate_story(db: Session, payload: EpisodeCreate, openai_client: OpenAICli
         max_output_tokens=payload.max_output_tokens,
     )
 
-    # Extract the generated story text from the response dict.
-    # The exact key depends on your OpenAI client implementation.
-    story_text = response.get("text", "")
-
-    return story_text
+    return response

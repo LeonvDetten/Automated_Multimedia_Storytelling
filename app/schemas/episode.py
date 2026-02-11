@@ -35,6 +35,7 @@ class EpisodeRead(BaseModel):
     target_duration_sec: int
     temperature: float | None
     max_output_tokens: int | None
+    temperature_applied: bool | None
     status: str
     created_at: datetime
 

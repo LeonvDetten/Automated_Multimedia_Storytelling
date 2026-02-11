@@ -65,10 +65,14 @@ def run_storygen_job(job_id: int) -> None:
 
         try:
             update_job_state(db, job_id, status="running", progress_pct=45, step="calling model")
-            story_text = generate_story(db, payload, client)
+            result = generate_story(db, payload, client)
 
             update_job_state(db, job_id, status="running", progress_pct=80, step="saving output")
-            episode.script_text = story_text
+            episode.script_text = result.get("text", "")
+            if payload.temperature is None:
+                episode.temperature_applied = None
+            else:
+                episode.temperature_applied = bool(result.get("temperature_applied"))
             episode.status = "generated"
             db.commit()
 
