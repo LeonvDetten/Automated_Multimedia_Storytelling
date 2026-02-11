@@ -5,7 +5,7 @@
 {% elif job %}
 <div
   class="status-card"
-  {% if job.status != "completed" %}
+  {% if job.status not in ["completed", "failed"] %}
   hx-get="/web/jobs/{{ job.id }}/status"
   hx-trigger="load delay:700ms"
   hx-swap="outerHTML"
@@ -15,6 +15,9 @@
   <p>Status: {{ job.status }}</p>
   <p>Step: {{ job.step }}</p>
   <p>Progress: {{ job.progress_pct }}%</p>
+  {% if job.status == "failed" %}
+  <p><strong>Error:</strong> {{ job.error_message or "Unknown error." }}</p>
+  {% endif %}
   {% if job.status == "completed" %}
   <p><a href="/web/episodes/{{ episode_id }}">Open episode details</a></p>
   {% endif %}

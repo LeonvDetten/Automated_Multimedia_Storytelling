@@ -18,7 +18,11 @@ def generate_story(db: Session, payload: EpisodeCreate, openai_client: OpenAICli
 
     context = build_story_context(db, payload)
     prompt = build_prompt(context)
-    response = openai_client.generate_text(prompt)
+    response = openai_client.generate_text(
+        prompt,
+        temperature=payload.temperature,
+        max_output_tokens=payload.max_output_tokens,
+    )
 
     # Extract the generated story text from the response dict.
     # The exact key depends on your OpenAI client implementation.

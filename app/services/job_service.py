@@ -1,23 +1,86 @@
-"""Background job simulation service for phase 1."""
+"""Background job helpers for story generation."""
 
-import time
+from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.db.session import SessionLocal
-from app.repositories.job_repository import update_job_state
+from app.models.episode import Episode
+from app.repositories.job_repository import get_job, update_job_state
+from app.schemas.episode import EpisodeCreate
+from app.storygen.openai_client import OpenAIClient
+from app.storygen.story_service import generate_story
 
 
-def run_job_stub(job_id: int) -> None:
-    """Simulate asynchronous processing by updating a job through fixed steps."""
+def _payload_from_episode(db: Session, episode: Episode) -> EpisodeCreate:
+    """Build an EpisodeCreate payload from a stored episode record."""
 
-    steps = [
-        ("running", 25, "validating input", 0.1),
-        ("running", 60, "assembling context", 0.1),
-        ("running", 90, "preparing output", 0.1),
-        ("completed", 100, "completed", 0.0),
-    ]
+    return EpisodeCreate(
+        user_prompt=episode.user_prompt,
+        theme_id=episode.theme_id,
+        series_id=episode.series_id,
+        continuation_from_episode_id=episode.continuation_from_episode_id,
+        character_ids=[link.character_id for link in episode.characters],
+        target_duration_sec=episode.target_duration_sec,
+        title=episode.title,
+        is_standalone=episode.series_id is None,
+        temperature=episode.temperature,
+        max_output_tokens=episode.max_output_tokens,
+    )
 
-    for status, progress_pct, step, delay in steps:
-        if delay:
-            time.sleep(delay)
-        with SessionLocal() as db:
-            update_job_state(db, job_id, status=status, progress_pct=progress_pct, step=step)
+
+def run_storygen_job(job_id: int) -> None:
+    """Generate story text and persist it to the episode record."""
+
+    settings = get_settings()
+    api_key = settings.openai_api_key
+    model = settings.openai_model
+
+    with SessionLocal() as db:
+        job = get_job(db, job_id)
+        if not job:
+            return
+
+        episode = job.episode
+        if not episode:
+            update_job_state(db, job_id, status="failed", progress_pct=100, step="missing episode", error_message="Episode not found.")
+            return
+
+        if not api_key or not model:
+            update_job_state(
+                db,
+                job_id,
+                status="failed",
+                progress_pct=100,
+                step="missing configuration",
+                error_message="OpenAI configuration missing.",
+            )
+            episode.status = "failed"
+            db.commit()
+            return
+
+        update_job_state(db, job_id, status="running", progress_pct=10, step="building context")
+
+        payload = _payload_from_episode(db, episode)
+        client = OpenAIClient(api_key=api_key, model=model)
+
+        try:
+            update_job_state(db, job_id, status="running", progress_pct=45, step="calling model")
+            story_text = generate_story(db, payload, client)
+
+            update_job_state(db, job_id, status="running", progress_pct=80, step="saving output")
+            episode.script_text = story_text
+            episode.status = "generated"
+            db.commit()
+
+            update_job_state(db, job_id, status="completed", progress_pct=100, step="completed")
+        except Exception as exc:  # noqa: BLE001 - we want to surface any generation failure
+            update_job_state(
+                db,
+                job_id,
+                status="failed",
+                progress_pct=100,
+                step="failed",
+                error_message=str(exc),
+            )
+            episode.status = "failed"
+            db.commit()

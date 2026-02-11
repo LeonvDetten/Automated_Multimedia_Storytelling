@@ -76,9 +76,33 @@
       </label>
 
       <label>
-        Target duration (seconds)
-        <input type="number" name="target_duration_sec" value="15" min="5" max="120" />
+        Temperature
+        <div class="slider-row">
+          <input
+            id="temperature"
+            type="range"
+            name="temperature"
+            min="0"
+            max="1.5"
+            step="0.05"
+            value="0.8"
+            oninput="updateTemperatureValue(this.value)"
+          />
+          <span id="temperature-value" class="slider-value">0.8</span>
+        </div>
       </label>
+
+      <div class="inline-fields">
+        <label>
+          Target duration (seconds)
+          <input type="number" name="target_duration_sec" value="15" min="5" max="120" />
+        </label>
+
+        <label>
+          Max text length (tokens)
+          <input type="number" name="max_output_tokens" value="800" min="50" max="4000" />
+        </label>
+      </div>
 
       <button type="submit">Create Episode Job</button>
     </form>
@@ -203,10 +227,18 @@
     }
   }
 
+  function updateTemperatureValue(value) {
+    const output = document.getElementById("temperature-value");
+    if (!output) return;
+    const numericValue = Number.parseFloat(value);
+    output.textContent = Number.isNaN(numericValue) ? value : numericValue.toFixed(2);
+  }
+
   document.addEventListener("DOMContentLoaded", () => {
     const standaloneSelect = document.getElementById("is_standalone");
     const seriesSelect = document.getElementById("series_id");
     const newSeriesInput = document.getElementById("new_series_title");
+    const temperatureInput = document.getElementById("temperature");
 
     if (standaloneSelect) {
       standaloneSelect.addEventListener("change", toggleStandaloneFields);
@@ -230,6 +262,10 @@
           createSeriesFromInput();
         }
       });
+    }
+
+    if (temperatureInput) {
+      updateTemperatureValue(temperatureInput.value);
     }
   });
 </script>

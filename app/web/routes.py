@@ -293,6 +293,8 @@ def create_episode_from_form(
     continuation_from_episode_id: str = Form(""),
     character_ids: list[int] = Form(default=[]),
     target_duration_sec: int = Form(15),
+    temperature: str = Form("0.8"),
+    max_output_tokens: str = Form("800"),
     title: str = Form(""),
 ) -> HTMLResponse:
     """Handle form submission and return a polling job-status partial."""
@@ -312,6 +314,8 @@ def create_episode_from_form(
         continuation_from_episode_id=continuation_id,
         character_ids=character_ids,
         target_duration_sec=target_duration_sec,
+        temperature=float(temperature) if temperature else None,
+        max_output_tokens=int(max_output_tokens) if max_output_tokens else None,
         title=title or None,
         is_standalone=standalone_flag,
     )

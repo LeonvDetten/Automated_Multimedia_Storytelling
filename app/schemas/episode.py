@@ -14,6 +14,8 @@ class EpisodeCreate(BaseModel):
     continuation_from_episode_id: int | None = None
     character_ids: list[int] = Field(default_factory=list)
     target_duration_sec: int = Field(default=15, ge=5, le=120)
+    temperature: float | None = Field(default=None, ge=0.0, le=1.5)
+    max_output_tokens: int | None = Field(default=None, ge=50, le=4000)
     title: str | None = None
     is_standalone: bool = False
 
@@ -31,6 +33,8 @@ class EpisodeRead(BaseModel):
     summary: str | None
     script_text: str | None
     target_duration_sec: int
+    temperature: float | None
+    max_output_tokens: int | None
     status: str
     created_at: datetime
 

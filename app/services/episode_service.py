@@ -9,7 +9,7 @@ from app.repositories.job_repository import create_job
 from app.repositories.series_repository import get_default_series, get_series
 from app.repositories.theme_repository import get_default_theme, get_theme
 from app.schemas.episode import EpisodeCreate
-from app.services.job_service import run_job_stub
+from app.services.job_service import run_storygen_job
 
 
 def _resolve_series_id(db: Session, series_id: int | None) -> int:
@@ -69,9 +69,11 @@ def create_episode_and_job(db: Session, payload: EpisodeCreate, background_tasks
         continuation_from_episode_id=payload.continuation_from_episode_id,
         character_ids=payload.character_ids,
         target_duration_sec=payload.target_duration_sec,
+        temperature=payload.temperature,
+        max_output_tokens=payload.max_output_tokens,
     )
 
-    job = create_job(db, episode.id)
-    background_tasks.add_task(run_job_stub, job.id)
+    job = create_job(db, episode.id, job_type="storygen")
+    background_tasks.add_task(run_storygen_job, job.id)
 
     return episode.id, job.id

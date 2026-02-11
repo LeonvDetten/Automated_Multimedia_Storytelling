@@ -13,6 +13,8 @@
   <p><strong>Theme:</strong> {{ episode.theme.label if episode.theme else "No theme" }}</p>
   <p><strong>Continuation from:</strong> {{ episode.continuation_from_episode_id or "None" }}</p>
   <p><strong>Target duration:</strong> {{ episode.target_duration_sec }} seconds</p>
+  <p><strong>Temperature:</strong> {{ episode.temperature if episode.temperature is not none else "Auto" }}</p>
+  <p><strong>Max tokens:</strong> {{ episode.max_output_tokens if episode.max_output_tokens is not none else "Auto" }}</p>
 
   <h3>Characters</h3>
   <div class="episode-characters">
@@ -27,6 +29,13 @@
 
   <h3>User prompt</h3>
   <pre class="prompt-block">{{ episode.user_prompt }}</pre>
+
+  <h3>Generated story</h3>
+  {% if episode.script_text %}
+  <pre class="prompt-block">{{ episode.script_text }}</pre>
+  {% else %}
+  <p class="muted-text">No generated story yet.</p>
+  {% endif %}
 
   <p><a href="/">Back to input form</a></p>
 </article>

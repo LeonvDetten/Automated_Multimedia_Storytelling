@@ -43,6 +43,8 @@ def create_episode(
     continuation_from_episode_id: int | None,
     character_ids: list[int],
     target_duration_sec: int,
+    temperature: float | None,
+    max_output_tokens: int | None,
 ) -> Episode:
     """Create an episode and its character links in one transaction."""
 
@@ -56,6 +58,8 @@ def create_episode(
         theme_id=theme_id,
         continuation_from_episode_id=continuation_from_episode_id,
         target_duration_sec=target_duration_sec,
+        temperature=temperature,
+        max_output_tokens=max_output_tokens,
         status="draft",
     )
     db.add(episode)
