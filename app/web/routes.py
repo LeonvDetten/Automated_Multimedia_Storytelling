@@ -295,7 +295,7 @@ def create_episode_from_form(
     target_duration_sec: int = Form(15),
     temperature: str = Form("0.8"),
     max_output_tokens: str = Form("800"),
-    model: str = Form("gpt-5-mini"),
+    model: str = Form("gpt-4.1-mini"),
     title: str = Form(""),
 ) -> HTMLResponse:
     """Handle form submission and return a polling job-status partial."""

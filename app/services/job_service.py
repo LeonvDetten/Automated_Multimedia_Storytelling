@@ -60,7 +60,7 @@ def run_storygen_job(job_id: int) -> None:
         update_job_state(db, job_id, status="running", progress_pct=10, step="building context")
 
         payload = _payload_from_episode(db, episode)
-        model_name = episode.model or "gpt-5-mini"
+        model_name = episode.model or "gpt-4.1-mini"
         client = OpenAIClient(api_key=api_key, model=model_name)
 
         try:

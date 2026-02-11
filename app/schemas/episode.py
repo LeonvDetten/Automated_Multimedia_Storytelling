@@ -19,7 +19,7 @@ class EpisodeCreate(BaseModel):
     target_duration_sec: int = Field(default=15, ge=5, le=120)
     temperature: float | None = Field(default=None, ge=0.0, le=1.5)
     max_output_tokens: int | None = Field(default=None, ge=50, le=4000)
-    model: StoryModel = "gpt-5-mini"
+    model: StoryModel = "gpt-4.1-mini"
     title: str | None = None
     is_standalone: bool = False
 

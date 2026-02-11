@@ -31,11 +31,11 @@ def build_prompt(context: StoryContext) -> str:
         series_block = f"Series: {context.series_title} (Episode {context.episode_number})\n"
 
     prompt = (
-        "You are a professional story writer for a fairy-tale style series.\n"
+        "You are a professional story writer for fairy-tales.\n"
         "Write in English. Output only the story text (no headings, no bullet points, no meta commentary).\n"
-        f"Target length: about {context.target_words} words (do not exceed).\n"
-        "If you are near the limit, wrap up quickly and resolve the main conflict. No cliffhanger.\n"
-        "Tone: vivid, cinematic, emotionally resonant, suitable for narration.\n"
+        f"Target length: about {context.target_words} words (do not exceed!!!).\n"
+        "If you are near the limit, wrap up quickly and resolve the main conflict! No cliffhanger!\n"
+        "Tone: vivid, cinematic, emotionally resonant, suitable for narration, concise.\n"
         "Structure: strong opening hook, clear rising tension, satisfying resolution.\n"
         "Theme handling: weave the theme subtly through actions, symbols, and choices.\n"
         "Character usage: give each listed character at least one distinct line or moment reflecting their speech style.\n"

@@ -29,7 +29,7 @@ class OpenAIClient:
         if max_output_tokens is not None:
             params["max_output_tokens"] = max_output_tokens
         if self._is_gpt5_family(self.model):
-            params.setdefault("reasoning", {"effort": "low"})
+            params.setdefault("reasoning", {"effort": "minimal"})
 
         response, temperature_applied = self._call_with_temperature_fallback(client, params, temperature)
         text, output_types = self._parse_response(response)
