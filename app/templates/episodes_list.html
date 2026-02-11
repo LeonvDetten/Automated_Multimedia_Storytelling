@@ -10,7 +10,7 @@
   <article class="panel episode-card">
     <div class="episode-header">
       <h3 class="episode-card-title">{{ item.title }}</h3>
-      <span class="status-pill">{{ item.status }}</span>
+      <span class="status-pill {% if item.status == 'failed' %}status-pill--failed{% endif %}">{{ item.status }}</span>
     </div>
 
     <p class="episode-meta">
@@ -22,6 +22,7 @@
       {% if item.theme %}
       · Theme: {{ item.theme.label }}
       {% endif %}
+      · Model: {{ item.model or "Auto" }}
     </p>
 
     <div class="episode-characters">

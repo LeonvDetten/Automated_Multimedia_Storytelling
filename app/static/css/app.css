@@ -406,6 +406,11 @@ a {
   letter-spacing: 0.06em;
 }
 
+.status-pill--failed {
+  background: rgba(255, 125, 125, 0.2);
+  color: var(--error);
+}
+
 .prompt-block {
   white-space: pre-wrap;
   background: rgba(8, 18, 12, 0.8);

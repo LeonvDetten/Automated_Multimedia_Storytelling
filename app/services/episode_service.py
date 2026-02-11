@@ -71,6 +71,7 @@ def create_episode_and_job(db: Session, payload: EpisodeCreate, background_tasks
         target_duration_sec=payload.target_duration_sec,
         temperature=payload.temperature,
         max_output_tokens=payload.max_output_tokens,
+        model=payload.model,
     )
 
     job = create_job(db, episode.id, job_type="storygen")

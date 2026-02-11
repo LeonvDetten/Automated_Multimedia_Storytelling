@@ -45,6 +45,7 @@ def create_episode(
     target_duration_sec: int,
     temperature: float | None,
     max_output_tokens: int | None,
+    model: str | None,
 ) -> Episode:
     """Create an episode and its character links in one transaction."""
 
@@ -60,6 +61,7 @@ def create_episode(
         target_duration_sec=target_duration_sec,
         temperature=temperature,
         max_output_tokens=max_output_tokens,
+        model=model,
         status="draft",
     )
     db.add(episode)

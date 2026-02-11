@@ -33,7 +33,6 @@ def run_storygen_job(job_id: int) -> None:
 
     settings = get_settings()
     api_key = settings.openai_api_key
-    model = settings.openai_model
 
     with SessionLocal() as db:
         job = get_job(db, job_id)
@@ -45,7 +44,7 @@ def run_storygen_job(job_id: int) -> None:
             update_job_state(db, job_id, status="failed", progress_pct=100, step="missing episode", error_message="Episode not found.")
             return
 
-        if not api_key or not model:
+        if not api_key:
             update_job_state(
                 db,
                 job_id,
@@ -61,7 +60,8 @@ def run_storygen_job(job_id: int) -> None:
         update_job_state(db, job_id, status="running", progress_pct=10, step="building context")
 
         payload = _payload_from_episode(db, episode)
-        client = OpenAIClient(api_key=api_key, model=model)
+        model_name = episode.model or "gpt-5-mini"
+        client = OpenAIClient(api_key=api_key, model=model_name)
 
         try:
             update_job_state(db, job_id, status="running", progress_pct=45, step="calling model")

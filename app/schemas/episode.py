@@ -1,8 +1,11 @@
 """Episode schema definitions."""
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+StoryModel = Literal["gpt-4.1-mini", "gpt-4o-mini", "gpt-5-mini"]
 
 
 class EpisodeCreate(BaseModel):
@@ -16,6 +19,7 @@ class EpisodeCreate(BaseModel):
     target_duration_sec: int = Field(default=15, ge=5, le=120)
     temperature: float | None = Field(default=None, ge=0.0, le=1.5)
     max_output_tokens: int | None = Field(default=None, ge=50, le=4000)
+    model: StoryModel = "gpt-5-mini"
     title: str | None = None
     is_standalone: bool = False
 
@@ -36,6 +40,7 @@ class EpisodeRead(BaseModel):
     temperature: float | None
     max_output_tokens: int | None
     temperature_applied: bool | None
+    model: str | None
     status: str
     created_at: datetime
 

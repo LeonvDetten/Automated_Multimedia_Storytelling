@@ -13,6 +13,7 @@
   <p><strong>Theme:</strong> {{ episode.theme.label if episode.theme else "No theme" }}</p>
   <p><strong>Continuation from:</strong> {{ episode.continuation_from_episode_id or "None" }}</p>
   <p><strong>Target duration:</strong> {{ episode.target_duration_sec }} seconds</p>
+  <p><strong>Model:</strong> {{ episode.model or "Auto" }}</p>
   <p><strong>Temperature:</strong> {{ episode.temperature if episode.temperature is not none else "Auto" }}</p>
   <p>
     <strong>Temperature applied:</strong>

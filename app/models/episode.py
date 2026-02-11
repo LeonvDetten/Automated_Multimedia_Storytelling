@@ -30,6 +30,7 @@ class Episode(Base):
     temperature: Mapped[float | None] = mapped_column(Float, nullable=True)
     max_output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)
     temperature_applied: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    model: Mapped[str | None] = mapped_column(String(64), nullable=True)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="draft", server_default="draft")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
