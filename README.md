@@ -47,13 +47,13 @@ Open:
 
 ## 5) Phase 1 API endpoints
 
-- `GET /api/v1/themes`
-- `GET /api/v1/characters`
-- `POST /api/v1/characters`
-- `GET /api/v1/series`
-- `POST /api/v1/episodes`
-- `GET /api/v1/episodes/{episode_id}`
-- `GET /api/v1/jobs/{job_id}`
+- `GET /api/themes`
+- `GET /api/characters`
+- `POST /api/characters`
+- `GET /api/series`
+- `POST /api/episodes`
+- `GET /api/episodes/{episode_id}`
+- `GET /api/jobs/{job_id}`
 
 ## 6) Web flow (Phase 1)
 
@@ -72,7 +72,7 @@ Open:
 - `app/models/` - relational schema models
 - `app/repositories/` - focused DB operations
 - `app/services/` - episode/job orchestration logic
-- `app/api/v1/` - JSON API routes
+- `app/api/` - JSON API routes
 - `app/web/routes.py` - HTML routes and form flow
 - `app/templates/` - Jinja templates
 - `scripts/seed.py` - idempotent seed data

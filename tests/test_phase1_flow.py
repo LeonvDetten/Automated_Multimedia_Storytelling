@@ -18,20 +18,20 @@ def _seed_api_catalog(client) -> tuple[int, int, list[int]]:
         "description": "Leads difficult decisions.",
         "active": True,
     }
-    r1 = client.post("/api/v1/characters", json=payload)
+    r1 = client.post("/api/characters", json=payload)
     assert r1.status_code == 201
     c1 = r1.json()["id"]
 
     payload["name"] = "Kade Flint"
-    r2 = client.post("/api/v1/characters", json=payload)
+    r2 = client.post("/api/characters", json=payload)
     assert r2.status_code == 201
     c2 = r2.json()["id"]
 
-    theme_resp = client.get("/api/v1/themes")
+    theme_resp = client.get("/api/themes")
     assert theme_resp.status_code == 200
     theme_id = theme_resp.json()[0]["id"]
 
-    series_resp = client.get("/api/v1/series")
+    series_resp = client.get("/api/series")
     assert series_resp.status_code == 200
     series_id = series_resp.json()[0]["id"]
 
@@ -43,7 +43,7 @@ def test_episode_creation_with_valid_theme_and_characters(client, seeded_db: Ses
 
     theme_id, series_id, character_ids = _seed_api_catalog(client)
     response = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "A difficult alliance forms at sea.",
             "theme_id": theme_id,
@@ -65,7 +65,7 @@ def test_episode_creation_without_characters(client, seeded_db: Session) -> None
 
     theme_id, series_id, _ = _seed_api_catalog(client)
     response = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "A lone traveler enters a silent city.",
             "theme_id": theme_id,
@@ -82,7 +82,7 @@ def test_valid_continuation_reference(client, seeded_db: Session) -> None:
 
     theme_id, series_id, character_ids = _seed_api_catalog(client)
     first = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "Part one.",
             "theme_id": theme_id,
@@ -93,7 +93,7 @@ def test_valid_continuation_reference(client, seeded_db: Session) -> None:
     first_episode_id = first.json()["episode_id"]
 
     second = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "Part two.",
             "theme_id": theme_id,
@@ -111,7 +111,7 @@ def test_invalid_continuation_reference(client, seeded_db: Session) -> None:
 
     theme_id, series_id, character_ids = _seed_api_catalog(client)
     response = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "Part two.",
             "theme_id": theme_id,
@@ -130,7 +130,7 @@ def test_job_status_endpoint_consistent(client, seeded_db: Session) -> None:
 
     theme_id, series_id, character_ids = _seed_api_catalog(client)
     create_response = client.post(
-        "/api/v1/episodes",
+        "/api/episodes",
         json={
             "user_prompt": "Track this job.",
             "theme_id": theme_id,
@@ -140,7 +140,7 @@ def test_job_status_endpoint_consistent(client, seeded_db: Session) -> None:
     )
     job_id = create_response.json()["job_id"]
 
-    status_response = client.get(f"/api/v1/jobs/{job_id}")
+    status_response = client.get(f"/api/jobs/{job_id}")
     assert status_response.status_code == 200
     payload = status_response.json()
     assert payload["status"] in {"queued", "running", "completed"}

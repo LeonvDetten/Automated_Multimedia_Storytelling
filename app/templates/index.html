@@ -128,7 +128,7 @@
     if (!title) return;
 
     try {
-      const response = await fetch("/api/v1/series", {
+      const response = await fetch("/api/series", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description: "", language: "en" })
