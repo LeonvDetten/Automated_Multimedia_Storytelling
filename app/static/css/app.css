@@ -71,6 +71,19 @@ body::after {
   color: var(--muted);
 }
 
+.top-nav {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.top-nav a {
+  text-decoration: none;
+  color: var(--accent);
+  font-weight: 600;
+}
+
 .container {
   padding: 2rem 2.5rem 3rem;
 }
@@ -294,6 +307,70 @@ a {
 .episode-subtitle {
   margin-top: 0;
   color: var(--muted);
+}
+
+.episodes-list {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.episode-card {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.episode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.episode-card-title {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.episode-meta {
+  margin: 0;
+  color: var(--muted);
+}
+
+.episode-characters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.character-chip {
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(110, 231, 183, 0.14);
+  color: var(--accent);
+  font-size: 0.8rem;
+}
+
+.episode-actions {
+  margin-top: 0.25rem;
+}
+
+.episode-link {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.character-card details {
+  margin-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 0.5rem;
+}
+
+.character-card summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 .status-pill {

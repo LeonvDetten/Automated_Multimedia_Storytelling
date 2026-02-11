@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Episodes & Standalone Movies</h2>
+  <p class="muted-text">All created stories in one place.</p>
+</section>
+
+<section class="episodes-list">
+  {% for item in episodes %}
+  <article class="panel episode-card">
+    <div class="episode-header">
+      <h3 class="episode-card-title">{{ item.title }}</h3>
+      <span class="status-pill">{{ item.status }}</span>
+    </div>
+
+    <p class="episode-meta">
+      {% if item.series %}
+      {{ item.series.title }} · Episode {{ item.episode_number }}
+      {% else %}
+      Standalone (movie)
+      {% endif %}
+      {% if item.theme %}
+      · Theme: {{ item.theme.label }}
+      {% endif %}
+    </p>
+
+    <div class="episode-characters">
+      {% if item.characters %}
+        {% for link in item.characters %}
+        <span class="character-chip">{{ link.character.name }}</span>
+        {% endfor %}
+      {% else %}
+      <span class="muted-text">No characters selected</span>
+      {% endif %}
+    </div>
+
+    <div class="episode-actions">
+      <a class="episode-link" href="/web/episodes/{{ item.id }}">Open details →</a>
+    </div>
+  </article>
+  {% else %}
+  <article class="panel">
+    <p>No episodes yet.</p>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

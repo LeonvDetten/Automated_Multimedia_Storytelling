@@ -1,15 +1,25 @@
 """Server-rendered web routes for phase 1."""
 
+import json
+
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, selectinload
 
 from app.db.session import get_db
-from app.models.episode import Episode
+from app.models.episode import Episode, EpisodeCharacter
 from app.models.story_series import StorySeries
-from app.repositories.character_repository import list_characters
+from app.repositories.character_repository import (
+    create_character,
+    delete_character,
+    get_character,
+    list_all_characters,
+    list_characters,
+    update_character,
+)
+from app.schemas.character import CharacterCreate
 from app.repositories.episode_repository import get_episode, list_recent_episodes
 from app.repositories.job_repository import get_job
 from app.repositories.series_repository import create_series, list_series
@@ -153,6 +163,123 @@ def _render_delete_with_message(request: Request, db: Session, message: str, kin
     return templates.TemplateResponse("delete.html", context)
 
 
+def _render_characters_page(request: Request, db: Session, message: str | None = None, kind: str | None = None) -> HTMLResponse:
+    """Render the character management page with optional feedback."""
+
+    characters = list_all_characters(db)
+    context = {
+        "request": request,
+        "characters": characters,
+        "message": message,
+        "message_kind": kind,
+    }
+    return templates.TemplateResponse("characters.html", context)
+
+
+@router.get("/web/characters", response_class=HTMLResponse)
+def characters_manage(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Render the character management page."""
+
+    return _render_characters_page(request, db)
+
+
+@router.post("/web/characters/create", response_class=HTMLResponse)
+def character_create_action(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    speech_style: str = Form(...),
+    description: str = Form(...),
+    traits_json: str = Form(""),
+    active: str = Form(""),
+) -> HTMLResponse:
+    """Create a character from the management page."""
+
+    try:
+        traits = json.loads(traits_json) if traits_json.strip() else {}
+    except json.JSONDecodeError:
+        return _render_characters_page(request, db, "Traits JSON is invalid.", "error")
+
+    payload = {
+        "name": name.strip(),
+        "speech_style": speech_style.strip(),
+        "description": description.strip(),
+        "traits_json": traits,
+        "active": active.lower() in {"true", "on", "1", "yes"},
+    }
+
+    if not payload["name"] or not payload["speech_style"] or not payload["description"]:
+        return _render_characters_page(request, db, "Please fill in name, speech style, and description.", "error")
+
+    create_character(db, payload=CharacterCreate(**payload))
+    return _render_characters_page(request, db, "Character created.", "success")
+
+
+@router.post("/web/characters/{character_id}/update", response_class=HTMLResponse)
+def character_update_action(
+    request: Request,
+    character_id: int,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    speech_style: str = Form(...),
+    description: str = Form(...),
+    traits_json: str = Form(""),
+    active: str = Form(""),
+) -> HTMLResponse:
+    """Update an existing character."""
+
+    character = get_character(db, character_id)
+    if not character:
+        return _render_characters_page(request, db, "Character not found.", "error")
+
+    try:
+        traits = json.loads(traits_json) if traits_json.strip() else {}
+    except json.JSONDecodeError:
+        return _render_characters_page(request, db, "Traits JSON is invalid.", "error")
+
+    update_character(
+        db,
+        character,
+        name=name.strip(),
+        speech_style=speech_style.strip(),
+        description=description.strip(),
+        traits_json=traits,
+        active=active.lower() in {"true", "on", "1", "yes"},
+    )
+    return _render_characters_page(request, db, "Character updated.", "success")
+
+
+@router.post("/web/characters/{character_id}/delete", response_class=HTMLResponse)
+def character_delete_action(
+    request: Request,
+    character_id: int,
+    db: Session = Depends(get_db),
+    confirm_check: str = Form(""),
+    confirm_text: str = Form(""),
+) -> HTMLResponse:
+    """Delete a character if it is not used by any episodes."""
+
+    error = _confirm_or_error(confirm_check, confirm_text)
+    if error:
+        return _render_characters_page(request, db, error, "error")
+
+    character = get_character(db, character_id)
+    if not character:
+        return _render_characters_page(request, db, "Character not found.", "error")
+
+    usage_count = db.scalar(select(func.count()).select_from(EpisodeCharacter).where(EpisodeCharacter.character_id == character_id))
+    if usage_count and usage_count > 0:
+        return _render_characters_page(
+            request,
+            db,
+            "Character is used in existing episodes. Remove those links first.",
+            "error",
+        )
+
+    delete_character(db, character)
+    return _render_characters_page(request, db, "Character deleted.", "success")
+
+
 @router.post("/web/episodes/create", response_class=HTMLResponse)
 def create_episode_from_form(
     request: Request,
@@ -223,3 +350,21 @@ def episode_detail(episode_id: int, request: Request, db: Session = Depends(get_
 
     context = {"request": request, "episode": episode}
     return templates.TemplateResponse("episode_detail.html", context)
+
+
+@router.get("/web/episodes", response_class=HTMLResponse)
+def episodes_overview(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Render a list of all episodes and standalone movies."""
+
+    statement = (
+        select(Episode)
+        .options(
+            selectinload(Episode.series),
+            selectinload(Episode.theme),
+            selectinload(Episode.characters).selectinload(EpisodeCharacter.character),
+        )
+        .order_by(Episode.created_at.desc())
+    )
+    episodes = list(db.scalars(statement).all())
+    context = {"request": request, "episodes": episodes}
+    return templates.TemplateResponse("episodes_list.html", context)

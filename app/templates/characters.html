@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Manage Characters</h2>
+  <p class="muted-text">Create, update, or delete characters used in stories.</p>
+
+  {% if message %}
+  <div class="alert {{ message_kind }}">{{ message }}</div>
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h3>Create New Character</h3>
+  <form method="post" action="/web/characters/create" class="form-stack">
+    <label>
+      Name
+      <input type="text" name="name" required />
+    </label>
+    <label>
+      Speech style
+      <input type="text" name="speech_style" required />
+    </label>
+    <label>
+      Description
+      <textarea name="description" rows="3" required></textarea>
+    </label>
+    <label>
+      Traits JSON (optional)
+      <textarea name="traits_json" rows="3" placeholder='{"temperament": "warm"}'></textarea>
+    </label>
+    <label class="checkbox-row">
+      <input type="checkbox" name="active" checked />
+      Active
+    </label>
+    <button type="submit">Create character</button>
+  </form>
+</section>
+
+<section class="episodes-list">
+  {% for item in characters %}
+  <article class="panel character-card">
+    <div class="episode-header">
+      <h3 class="episode-card-title">{{ item.name }}</h3>
+      <span class="status-pill">{{ "active" if item.active else "inactive" }}</span>
+    </div>
+    <p class="episode-meta">Speech style: {{ item.speech_style }}</p>
+    <p class="episode-meta">{{ item.description }}</p>
+
+    <details class="character-details">
+      <summary>Edit character</summary>
+      <form method="post" action="/web/characters/{{ item.id }}/update" class="form-stack">
+        <label>
+          Name
+          <input type="text" name="name" value="{{ item.name }}" required />
+        </label>
+        <label>
+          Speech style
+          <input type="text" name="speech_style" value="{{ item.speech_style }}" required />
+        </label>
+        <label>
+          Description
+          <textarea name="description" rows="3" required>{{ item.description }}</textarea>
+        </label>
+        <label>
+          Traits JSON (optional)
+          <textarea name="traits_json" rows="3">{{ item.traits_json }}</textarea>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" name="active" {% if item.active %}checked{% endif %} />
+          Active
+        </label>
+        <button type="submit">Update</button>
+      </form>
+    </details>
+
+    <details class="character-details">
+      <summary>Delete character</summary>
+      <form method="post" action="/web/characters/{{ item.id }}/delete" class="form-stack">
+        <div class="confirm-box">
+          <label class="checkbox-row">
+            <input type="checkbox" name="confirm_check" />
+            I understand this will delete the character.
+          </label>
+          <label>
+            Type DELETE to confirm
+            <input type="text" name="confirm_text" placeholder="DELETE" />
+          </label>
+        </div>
+        <button class="danger-button" type="submit">Delete</button>
+      </form>
+    </details>
+  </article>
+  {% else %}
+  <article class="panel">
+    <p>No characters yet.</p>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

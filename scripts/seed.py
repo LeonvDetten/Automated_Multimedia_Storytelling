@@ -26,22 +26,22 @@ THEMES = [
 
 DEMO_CHARACTERS = [
     {
-        "name": "Elara Quinn",
-        "speech_style": "Calm and reflective",
-        "description": "A strategic navigator who speaks with precise analogies.",
-        "traits_json": {"temperament": "measured", "role": "navigator"},
+        "name": "Üpsti Üüüng",
+        "speech_style": "Rhythmic, punchy, and electric",
+        "description": "An energetic rapper who charges every moment with lyrical fire and unstoppable groove.",
+        "traits_json": {"temperament": "vibrant", "role": "hype navigator"},
     },
     {
-        "name": "Jax Mercer",
-        "speech_style": "Bold and fast-paced",
-        "description": "A risk-taker who turns tension into momentum.",
-        "traits_json": {"temperament": "impulsive", "role": "scout"},
+        "name": "Zinkus Aktiv",
+        "speech_style": "Quiet, reflective, and poetic",
+        "description": "An introverted literature student who observes deeply, speaks softly, and drops profound insights like hidden bookmarks in old novels.",
+        "traits_json": {"temperament": "thoughtful", "role": "silent analyst"},
     },
     {
-        "name": "Nora Vale",
-        "speech_style": "Warm and empathetic",
-        "description": "A mediator who reframes conflict and protects group trust.",
-        "traits_json": {"temperament": "empathetic", "role": "mediator"},
+        "name": "Bongo McWobble",
+        "speech_style": "Chaotic, playful, and oddly philosophical",
+        "description": "A walking festival of bad ideas and brilliant accidents who solves problems with questionable logic, kitchen utensils, and unexpected wisdom.",
+        "traits_json": {"temperament": "chaotic-good", "role": "unofficial wildcard"},
     },
 ]
 
