@@ -27,10 +27,16 @@ def next_episode_number(db: Session, series_id: int) -> int:
     return (current_max or 0) + 1
 
 
+def standalone_episode_number() -> int:
+    """Return the default episode number for standalone entries."""
+
+    return 1
+
+
 def create_episode(
     db: Session,
     *,
-    series_id: int,
+    series_id: int | None,
     title: str,
     user_prompt: str,
     theme_id: int,
@@ -40,9 +46,11 @@ def create_episode(
 ) -> Episode:
     """Create an episode and its character links in one transaction."""
 
+    episode_number = standalone_episode_number() if series_id is None else next_episode_number(db, series_id)
+
     episode = Episode(
         series_id=series_id,
-        episode_number=next_episode_number(db, series_id),
+        episode_number=episode_number,
         title=title,
         user_prompt=user_prompt,
         theme_id=theme_id,

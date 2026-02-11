@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
 <article class="panel">
-  <h2>Episode #{{ episode.id }}</h2>
-  <p><strong>Title:</strong> {{ episode.title }}</p>
+  <h2 class="episode-title">{{ episode.title }}</h2>
+  <p class="episode-subtitle">
+    {% if episode.series %}
+    {{ episode.series.title }} · Episode {{ episode.episode_number }}
+    {% else %}
+    Standalone (movie)
+    {% endif %}
+  </p>
   <p><strong>Status:</strong> {{ episode.status }}</p>
-  <p><strong>Theme ID:</strong> {{ episode.theme_id }}</p>
-  <p><strong>Series ID:</strong> {{ episode.series_id }}</p>
+  <p><strong>Theme:</strong> {{ episode.theme.label if episode.theme else "No theme" }}</p>
   <p><strong>Continuation from:</strong> {{ episode.continuation_from_episode_id or "None" }}</p>
   <p><strong>Target duration:</strong> {{ episode.target_duration_sec }} seconds</p>
 

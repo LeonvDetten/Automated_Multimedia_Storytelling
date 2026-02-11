@@ -105,6 +105,11 @@ body::after {
   gap: 0.85rem;
 }
 
+.field-stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
 label {
   display: grid;
   gap: 0.35rem;
@@ -138,6 +143,18 @@ button {
   box-shadow: 0 0 22px var(--accent-soft);
 }
 
+.button-secondary {
+  background: rgba(9, 22, 14, 0.7);
+  color: var(--muted);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: none;
+}
+
+.button-secondary:hover {
+  color: var(--text);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
 a {
   color: var(--accent);
 }
@@ -156,7 +173,77 @@ a {
 }
 
 .recent-list {
-  padding-left: 1rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.recent-item {
+  margin: 0;
+}
+
+.recent-link {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(9, 22, 14, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.recent-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(4, 12, 10, 0.35);
+}
+
+.recent-title {
+  font-weight: 600;
+}
+
+.recent-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.recent-episode {
+  color: rgba(233, 243, 234, 0.75);
+}
+
+.recent-type {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.72rem;
+  color: rgba(233, 243, 234, 0.6);
+}
+
+.episode-title {
+  margin-bottom: 0.35rem;
+  font-size: 2rem;
+  font-family: "Cormorant Garamond", serif;
+}
+
+.episode-subtitle {
+  margin-top: 0;
+  color: var(--muted);
+}
+
+.status-pill {
+  background: rgba(110, 231, 183, 0.18);
+  color: var(--accent);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .prompt-block {

@@ -17,3 +17,10 @@ def get_theme(db: Session, theme_id: int) -> Theme | None:
     """Return a single theme by id when present."""
 
     return db.get(Theme, theme_id)
+
+
+def get_default_theme(db: Session) -> Theme | None:
+    """Return the first active theme as a fallback selection."""
+
+    statement: Select[tuple[Theme]] = select(Theme).where(Theme.active.is_(True)).order_by(Theme.id.asc()).limit(1)
+    return db.scalar(statement)

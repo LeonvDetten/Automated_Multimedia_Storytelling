@@ -13,6 +13,16 @@ def list_series(db: Session) -> list[StorySeries]:
     return list(db.scalars(statement).all())
 
 
+def create_series(db: Session, *, title: str, description: str = "", language: str = "en") -> StorySeries:
+    """Create a new story series row."""
+
+    series = StorySeries(title=title, description=description, language=language)
+    db.add(series)
+    db.commit()
+    db.refresh(series)
+    return series
+
+
 def get_series(db: Session, series_id: int) -> StorySeries | None:
     """Return one series by id."""
 

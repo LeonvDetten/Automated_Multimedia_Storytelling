@@ -9,19 +9,20 @@ class EpisodeCreate(BaseModel):
     """Payload to create a new phase 1 episode job."""
 
     user_prompt: str = Field(min_length=1)
-    theme_id: int
+    theme_id: int | None = None
     series_id: int | None = None
     continuation_from_episode_id: int | None = None
     character_ids: list[int] = Field(default_factory=list)
     target_duration_sec: int = Field(default=15, ge=5, le=120)
     title: str | None = None
+    is_standalone: bool = False
 
 
 class EpisodeRead(BaseModel):
     """Response payload for episode data."""
 
     id: int
-    series_id: int
+    series_id: int | None
     episode_number: int
     title: str
     user_prompt: str

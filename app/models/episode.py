@@ -14,7 +14,9 @@ class Episode(Base):
     __tablename__ = "episodes"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    series_id: Mapped[int] = mapped_column(ForeignKey("story_series.id", ondelete="RESTRICT"), nullable=False, index=True)
+    series_id: Mapped[int | None] = mapped_column(
+        ForeignKey("story_series.id", ondelete="RESTRICT"), nullable=True, index=True
+    )
     episode_number: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     user_prompt: Mapped[str] = mapped_column(Text, nullable=False)

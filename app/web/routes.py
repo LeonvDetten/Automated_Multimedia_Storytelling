@@ -9,7 +9,7 @@ from app.db.session import get_db
 from app.repositories.character_repository import list_characters
 from app.repositories.episode_repository import get_episode, list_recent_episodes
 from app.repositories.job_repository import get_job
-from app.repositories.series_repository import list_series
+from app.repositories.series_repository import create_series, list_series
 from app.repositories.theme_repository import list_themes
 from app.schemas.episode import EpisodeCreate
 from app.services.episode_service import create_episode_and_job
@@ -38,8 +38,10 @@ def create_episode_from_form(
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     user_prompt: str = Form(...),
-    theme_id: int = Form(...),
+    theme_id: str = Form(""),
     series_id: int | None = Form(None),
+    new_series_title: str = Form(""),
+    is_standalone: str = Form(""),
     continuation_from_episode_id: str = Form(""),
     character_ids: list[int] = Form(default=[]),
     target_duration_sec: int = Form(15),
@@ -47,15 +49,23 @@ def create_episode_from_form(
 ) -> HTMLResponse:
     """Handle form submission and return a polling job-status partial."""
 
+    standalone_flag = is_standalone.lower() in {"true", "on", "1", "yes"}
+    resolved_theme_id = int(theme_id) if theme_id else None
     continuation_id = int(continuation_from_episode_id) if continuation_from_episode_id else None
+    resolved_series_id = series_id
+    if new_series_title.strip() and not standalone_flag and resolved_series_id is None:
+        new_series = create_series(db, title=new_series_title.strip())
+        resolved_series_id = new_series.id
+
     payload = EpisodeCreate(
         user_prompt=user_prompt,
-        theme_id=theme_id,
-        series_id=series_id,
+        theme_id=resolved_theme_id,
+        series_id=resolved_series_id,
         continuation_from_episode_id=continuation_id,
         character_ids=character_ids,
         target_duration_sec=target_duration_sec,
         title=title or None,
+        is_standalone=standalone_flag,
     )
 
     try:

@@ -10,13 +10,14 @@
       class="form-stack"
     >
       <label>
-        Story prompt
-        <textarea name="user_prompt" rows="6" required placeholder="Describe what should happen in this episode..."></textarea>
+        Episode title (optional)
+        <input type="text" name="title" placeholder="Generated Episode" />
       </label>
 
       <label>
         Theme
-        <select name="theme_id" required>
+        <select name="theme_id">
+          <option value="">No theme / Auto</option>
           {% for theme in themes %}
           <option value="{{ theme.id }}">{{ theme.label }}</option>
           {% endfor %}
@@ -24,8 +25,26 @@
       </label>
 
       <label>
+        Story prompt
+        <textarea name="user_prompt" rows="6" required placeholder="Describe what should happen in this episode..."></textarea>
+      </label>
+
+      <label>
+        Story type
+        <select id="is_standalone" name="is_standalone">
+          <option value="false">Series episode</option>
+          <option value="true">Standalone (movie)</option>
+        </select>
+      </label>
+
+      <label>
+        New series title (optional)
+        <input id="new_series_title" type="text" name="new_series_title" placeholder="Create a new series" />
+      </label>
+
+      <label>
         Story series
-        <select name="series_id">
+        <select id="series_id" name="series_id">
           {% for item in series %}
           <option value="{{ item.id }}">{{ item.title }} ({{ item.language }})</option>
           {% endfor %}
@@ -34,26 +53,26 @@
 
       <label>
         Continue from episode (optional)
-        <select name="continuation_from_episode_id">
+        <select id="continuation_from_episode_id" name="continuation_from_episode_id">
           <option value="">No continuation</option>
           {% for item in recent_episodes %}
-          <option value="{{ item.id }}">#{{ item.id }} - {{ item.title }}</option>
+          <option value="{{ item.id }}" data-series-id="{{ item.series_id }}">#{{ item.id }} - {{ item.title }}</option>
           {% endfor %}
         </select>
       </label>
 
       <label>
         Characters
-        <select name="character_ids" multiple size="6">
-          {% for character in characters %}
-          <option value="{{ character.id }}">{{ character.name }} - {{ character.speech_style }}</option>
-          {% endfor %}
-        </select>
-      </label>
-
-      <label>
-        Episode title (optional)
-        <input type="text" name="title" placeholder="Generated Episode" />
+        <div class="field-stack">
+          <select id="character_ids" name="character_ids" multiple size="6">
+            {% for character in characters %}
+            <option value="{{ character.id }}">{{ character.name }} - {{ character.speech_style }}</option>
+            {% endfor %}
+          </select>
+          <button type="button" class="button-secondary" onclick="clearCharacterSelection()">
+            Clear characters
+          </button>
+        </div>
       </label>
 
       <label>
@@ -74,11 +93,142 @@
     <h3>Recent episodes</h3>
     <ul class="recent-list">
       {% for item in recent_episodes %}
-      <li><a href="/web/episodes/{{ item.id }}">#{{ item.id }} - {{ item.title }}</a></li>
+      <li class="recent-item">
+        <a class="recent-link" href="/web/episodes/{{ item.id }}">
+          <span class="recent-title">{{ item.title }}</span>
+          <span class="recent-meta">
+            <span class="status-pill">{{ item.status }}</span>
+            <span class="recent-episode">Episode {{ item.episode_number }}</span>
+            <span class="recent-type">
+              {% if item.series_id %}
+              Series
+              {% else %}
+              Standalone
+              {% endif %}
+            </span>
+          </span>
+        </a>
+      </li>
       {% else %}
       <li>No episodes yet.</li>
       {% endfor %}
     </ul>
   </article>
 </section>
+<script>
+  async function createSeriesFromInput() {
+    const input = document.getElementById("new_series_title");
+    const seriesSelect = document.getElementById("series_id");
+    const storyType = document.getElementById("is_standalone");
+
+    if (!input || !seriesSelect) return;
+    const title = input.value.trim();
+    if (!title) return;
+
+    try {
+      const response = await fetch("/api/v1/series", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, description: "", language: "en" })
+      });
+
+      if (!response.ok) {
+        throw new Error("Series creation failed");
+      }
+
+      const data = await response.json();
+      const option = document.createElement("option");
+      option.value = data.id;
+      option.textContent = `${data.title} (${data.language})`;
+      seriesSelect.appendChild(option);
+      seriesSelect.value = String(data.id);
+      input.value = "";
+
+      if (storyType) {
+        storyType.value = "false";
+      }
+
+      toggleStandaloneFields();
+      updateContinuationOptions();
+    } catch (error) {
+      alert("Could not create series. Please try again.");
+    }
+  }
+
+  function updateContinuationOptions() {
+    const seriesSelect = document.getElementById("series_id");
+    const continuationSelect = document.getElementById("continuation_from_episode_id");
+    const storyType = document.getElementById("is_standalone");
+    if (!seriesSelect || !continuationSelect) return;
+
+    const isStandalone = storyType && storyType.value === "true";
+    const selectedSeriesId = seriesSelect.value;
+
+    for (const option of continuationSelect.options) {
+      if (!option.value) {
+        option.hidden = false;
+        continue;
+      }
+
+      const optionSeries = option.getAttribute("data-series-id");
+      const matchesSeries = optionSeries === selectedSeriesId;
+      option.hidden = isStandalone ? true : !matchesSeries;
+    }
+
+    if (isStandalone || continuationSelect.selectedOptions[0]?.hidden) {
+      continuationSelect.value = "";
+    }
+  }
+
+  function toggleStandaloneFields() {
+    const standaloneSelect = document.getElementById("is_standalone");
+    const isStandalone = standaloneSelect && standaloneSelect.value === "true";
+    const seriesSelect = document.getElementById("series_id");
+    const seriesTitle = document.getElementById("new_series_title");
+    const continuationSelect = document.getElementById("continuation_from_episode_id");
+
+    if (seriesSelect) seriesSelect.disabled = isStandalone;
+    if (seriesTitle) seriesTitle.disabled = isStandalone;
+    if (continuationSelect) continuationSelect.disabled = isStandalone;
+    updateContinuationOptions();
+  }
+
+  function clearCharacterSelection() {
+    const select = document.getElementById("character_ids");
+    if (!select) return;
+    for (const option of select.options) {
+      option.selected = false;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const standaloneSelect = document.getElementById("is_standalone");
+    const seriesSelect = document.getElementById("series_id");
+    const newSeriesInput = document.getElementById("new_series_title");
+
+    if (standaloneSelect) {
+      standaloneSelect.addEventListener("change", toggleStandaloneFields);
+      toggleStandaloneFields();
+    }
+
+    if (seriesSelect) {
+      seriesSelect.addEventListener("change", updateContinuationOptions);
+      updateContinuationOptions();
+    }
+
+    if (newSeriesInput) {
+      newSeriesInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          createSeriesFromInput();
+        }
+      });
+      newSeriesInput.addEventListener("blur", () => {
+        if (newSeriesInput.value.trim()) {
+          createSeriesFromInput();
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
