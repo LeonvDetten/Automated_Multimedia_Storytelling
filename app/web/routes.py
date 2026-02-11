@@ -6,11 +6,11 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.repositories.character_repository import list_characters
 from app.repositories.episode_repository import get_episode, list_recent_episodes
 from app.repositories.job_repository import get_job
 from app.repositories.series_repository import list_series
 from app.repositories.theme_repository import list_themes
-from app.repositories.character_repository import list_characters
 from app.schemas.episode import EpisodeCreate
 from app.services.episode_service import create_episode_and_job
 
