@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="panel">
+  <h2>Delete Center</h2>
+  <p class="muted-text">
+    These actions are irreversible. Use them carefully.
+  </p>
+
+  {% if message %}
+  <div class="alert {{ message_kind }}">{{ message }}</div>
+  {% endif %}
+</section>
+
+<section class="grid delete-grid">
+  <article class="panel danger-panel">
+    <h3>Delete an Episode</h3>
+    <form method="post" action="/delete/episode" class="form-stack">
+      <label>
+        Episode
+        <select name="episode_id" required>
+          {% for item in episodes %}
+          <option value="{{ item.id }}">
+            {{ item.title }}{% if item.series %} · Episode {{ item.episode_number }} · {{ item.series.title }}{% else %} · Standalone{% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="confirm-box">
+        <label class="checkbox-row">
+          <input type="checkbox" name="confirm_check" />
+          I understand this will delete the episode.
+        </label>
+        <label>
+          Type DELETE to confirm
+          <input type="text" name="confirm_text" placeholder="DELETE" />
+        </label>
+      </div>
+
+      <button class="danger-button" type="submit">Delete episode</button>
+    </form>
+  </article>
+
+  <article class="panel danger-panel">
+    <h3>Delete a Standalone Movie</h3>
+    <form method="post" action="/delete/standalone" class="form-stack">
+      <label>
+        Standalone movie
+        <select name="episode_id" required>
+          {% for item in standalone %}
+          <option value="{{ item.id }}">{{ item.title }} · Standalone</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="confirm-box">
+        <label class="checkbox-row">
+          <input type="checkbox" name="confirm_check" />
+          I understand this will delete the movie.
+        </label>
+        <label>
+          Type DELETE to confirm
+          <input type="text" name="confirm_text" placeholder="DELETE" />
+        </label>
+      </div>
+
+      <button class="danger-button" type="submit">Delete standalone</button>
+    </form>
+  </article>
+
+  <article class="panel danger-panel">
+    <h3>Delete a Series (with all episodes)</h3>
+    <form method="post" action="/delete/series" class="form-stack">
+      <label>
+        Series
+        <select name="series_id" required>
+          {% for item in series %}
+          <option value="{{ item.id }}">{{ item.title }} ({{ item.language }})</option>
+          {% endfor %}
+        </select>
+      </label>
+
+      <div class="confirm-box">
+        <label class="checkbox-row">
+          <input type="checkbox" name="confirm_check" />
+          I understand this will delete the series and its episodes.
+        </label>
+        <label>
+          Type DELETE to confirm
+          <input type="text" name="confirm_text" placeholder="DELETE" />
+        </label>
+      </div>
+
+      <button class="danger-button" type="submit">Delete series</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

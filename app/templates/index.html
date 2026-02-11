@@ -98,7 +98,9 @@
           <span class="recent-title">{{ item.title }}</span>
           <span class="recent-meta">
             <span class="status-pill">{{ item.status }}</span>
+            {% if item.series_id %}
             <span class="recent-episode">Episode {{ item.episode_number }}</span>
+            {% endif %}
             <span class="recent-type">
               {% if item.series_id %}
               Series

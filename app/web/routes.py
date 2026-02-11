@@ -3,9 +3,12 @@
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.models.episode import Episode
+from app.models.story_series import StorySeries
 from app.repositories.character_repository import list_characters
 from app.repositories.episode_repository import get_episode, list_recent_episodes
 from app.repositories.job_repository import get_job
@@ -30,6 +33,124 @@ def index(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
         "recent_episodes": list_recent_episodes(db),
     }
     return templates.TemplateResponse("index.html", context)
+
+
+def _confirm_or_error(confirm_check: str, confirm_text: str) -> str | None:
+    """Validate the delete confirmation inputs."""
+
+    if confirm_check.lower() not in {"true", "on", "1", "yes"}:
+        return "Please confirm the checkbox before deleting."
+    if confirm_text.strip().upper() != "DELETE":
+        return "Please type DELETE to confirm."
+    return None
+
+
+@router.get("/delete", response_class=HTMLResponse)
+def delete_center(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+    """Render the delete center for episodes, series, and standalone movies."""
+
+    episodes = list(db.scalars(select(Episode).order_by(Episode.created_at.desc())).all())
+    series_list = list(db.scalars(select(StorySeries).order_by(StorySeries.created_at.desc())).all())
+    standalone = [episode for episode in episodes if episode.series_id is None]
+
+    context = {
+        "request": request,
+        "episodes": episodes,
+        "series": series_list,
+        "standalone": standalone,
+    }
+    return templates.TemplateResponse("delete.html", context)
+
+
+@router.post("/delete/episode", response_class=HTMLResponse)
+def delete_episode_action(
+    request: Request,
+    db: Session = Depends(get_db),
+    episode_id: int = Form(...),
+    confirm_check: str = Form(""),
+    confirm_text: str = Form(""),
+) -> HTMLResponse:
+    """Delete a single episode by id after confirmation."""
+
+    error = _confirm_or_error(confirm_check, confirm_text)
+    if error:
+        return _render_delete_with_message(request, db, error, "error")
+
+    episode = db.get(Episode, episode_id)
+    if not episode:
+        return _render_delete_with_message(request, db, "Episode not found.", "error")
+
+    db.delete(episode)
+    db.commit()
+    return _render_delete_with_message(request, db, "Episode deleted.", "success")
+
+
+@router.post("/delete/standalone", response_class=HTMLResponse)
+def delete_standalone_action(
+    request: Request,
+    db: Session = Depends(get_db),
+    episode_id: int = Form(...),
+    confirm_check: str = Form(""),
+    confirm_text: str = Form(""),
+) -> HTMLResponse:
+    """Delete a standalone movie episode after confirmation."""
+
+    error = _confirm_or_error(confirm_check, confirm_text)
+    if error:
+        return _render_delete_with_message(request, db, error, "error")
+
+    episode = db.get(Episode, episode_id)
+    if not episode or episode.series_id is not None:
+        return _render_delete_with_message(request, db, "Standalone movie not found.", "error")
+
+    db.delete(episode)
+    db.commit()
+    return _render_delete_with_message(request, db, "Standalone movie deleted.", "success")
+
+
+@router.post("/delete/series", response_class=HTMLResponse)
+def delete_series_action(
+    request: Request,
+    db: Session = Depends(get_db),
+    series_id: int = Form(...),
+    confirm_check: str = Form(""),
+    confirm_text: str = Form(""),
+) -> HTMLResponse:
+    """Delete a series and all of its episodes after confirmation."""
+
+    error = _confirm_or_error(confirm_check, confirm_text)
+    if error:
+        return _render_delete_with_message(request, db, error, "error")
+
+    series = db.get(StorySeries, series_id)
+    if not series:
+        return _render_delete_with_message(request, db, "Series not found.", "error")
+
+    episodes = list(db.scalars(select(Episode).where(Episode.series_id == series_id)).all())
+    for episode in episodes:
+        db.delete(episode)
+
+    db.delete(series)
+    db.commit()
+    return _render_delete_with_message(request, db, "Series and episodes deleted.", "success")
+
+
+def _render_delete_with_message(request: Request, db: Session, message: str, kind: str) -> HTMLResponse:
+    """Re-render the delete page with a feedback message."""
+
+    episodes = list(db.scalars(select(Episode).order_by(Episode.created_at.desc())).all())
+    series_list = list(db.scalars(select(StorySeries).order_by(StorySeries.created_at.desc())).all())
+    standalone = [episode for episode in episodes if episode.series_id is None]
+
+    context = {
+        "request": request,
+        "episodes": episodes,
+        "series": series_list,
+        "standalone": standalone,
+        "message": message,
+        "message_kind": kind,
+    }
+    return templates.TemplateResponse("delete.html", context)
 
 
 @router.post("/web/episodes/create", response_class=HTMLResponse)

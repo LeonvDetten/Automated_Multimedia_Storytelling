@@ -225,6 +225,66 @@ a {
   color: rgba(233, 243, 234, 0.6);
 }
 
+.muted-text {
+  color: var(--muted);
+  margin-top: 0.25rem;
+}
+
+.alert {
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(9, 22, 14, 0.7);
+}
+
+.alert.success {
+  border-color: rgba(110, 231, 183, 0.4);
+  color: var(--accent);
+}
+
+.alert.error {
+  border-color: rgba(255, 125, 125, 0.5);
+  color: var(--error);
+}
+
+.delete-grid {
+  margin-top: 1.5rem;
+}
+
+.danger-panel {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.confirm-box {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  background: rgba(8, 18, 12, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--muted);
+}
+
+.danger-button {
+  background: linear-gradient(120deg, #ffb4a2, #ef6b6b);
+  color: #2b0f0f;
+  border: none;
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.danger-button:hover {
+  filter: brightness(0.95);
+}
+
 .episode-title {
   margin-bottom: 0.35rem;
   font-size: 2rem;
