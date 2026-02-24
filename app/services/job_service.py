@@ -61,7 +61,13 @@ def run_storygen_job(job_id: int) -> None:
 
         payload = _payload_from_episode(db, episode)
         model_name = episode.model or "gpt-4.1-mini"
-        client = OpenAIClient(api_key=api_key, model=model_name)
+        client = OpenAIClient(
+            api_key=api_key,
+            model=model_name,
+            langfuse_public_key=settings.langfuse_public_key,
+            langfuse_secret_key=settings.langfuse_secret_key,
+            langfuse_host=settings.langfuse_host,
+        )
 
         try:
             update_job_state(db, job_id, status="running", progress_pct=45, step="calling model")

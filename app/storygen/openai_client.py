@@ -1,14 +1,27 @@
+import os
 from typing import Any
 
-from openai import BadRequestError, OpenAI
+from langfuse.openai import openai as langfuse_openai
+from openai import BadRequestError
 
 
 class OpenAIClient:
     """Minimal client interface for story generation."""
 
-    def __init__(self, api_key: str, model: str) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        model: str,
+        *,
+        langfuse_public_key: str | None = None,
+        langfuse_secret_key: str | None = None,
+        langfuse_host: str | None = None,
+    ) -> None:
         self.api_key = api_key
         self.model = model
+        self.langfuse_public_key = langfuse_public_key or ""
+        self.langfuse_secret_key = langfuse_secret_key or ""
+        self.langfuse_host = langfuse_host or ""
 
     def generate_text(
         self,
@@ -19,7 +32,7 @@ class OpenAIClient:
     ) -> dict[str, Any]:
         """Call the OpenAI Responses API and return the text output."""
 
-        client = OpenAI(api_key=self.api_key)
+        client = self._build_openai_client()
         params: dict[str, Any] = {"model": self.model, "input": prompt}
         temperature_applied: bool | None = None
 
@@ -56,7 +69,7 @@ class OpenAIClient:
 
     @staticmethod
     def _call_with_temperature_fallback(
-        client: OpenAI, params: dict[str, Any], temperature: float | None
+        client: Any, params: dict[str, Any], temperature: float | None
     ) -> tuple[Any, bool | None]:
         """Call the API; retry without temperature if the model rejects it."""
 
@@ -188,3 +201,20 @@ class OpenAIClient:
         """Return True if the model is in the GPT-5 family."""
 
         return model.startswith("gpt-5")
+
+    def _build_openai_client(self) -> Any:
+        """Return a Langfuse-instrumented OpenAI client."""
+
+        if not self.langfuse_public_key or not self.langfuse_secret_key:
+            raise RuntimeError("Langfuse keys are required (LANGFUSE_PUBLIC_KEY / LANGFUSE_SECRET_KEY).")
+
+        self._apply_langfuse_env()
+        return langfuse_openai.OpenAI(api_key=self.api_key)
+
+    def _apply_langfuse_env(self) -> None:
+        """Expose Langfuse settings as environment vars for the wrapper."""
+
+        os.environ["LANGFUSE_PUBLIC_KEY"] = self.langfuse_public_key
+        os.environ["LANGFUSE_SECRET_KEY"] = self.langfuse_secret_key
+        if self.langfuse_host:
+            os.environ["LANGFUSE_HOST"] = self.langfuse_host

@@ -9,3 +9,4 @@ python-multipart==0.0.20
 pytest==8.4.1
 httpx==0.28.1
 openai==2.20.0
+langfuse==3.3.1
