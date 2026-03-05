@@ -55,3 +55,38 @@ def build_prompt(context: StoryContext) -> str:
     )
 
     return prompt
+
+
+def build_image_prompt(context: StoryContext, story_text: str) -> str:
+    """Build an image-generation prompt that matches the generated story.
+
+    The prompt should be descriptive and focus on a single evocative scene
+    from the story, include characters and theme when available, and suggest
+    a vivid art style suitable for illustration.
+    """
+
+    # Choose a short scene description from the start of the story_text
+    scene_excerpt = "".join(story_text.strip().splitlines()[:3])
+    scene_excerpt = (scene_excerpt[:600] + "...") if len(scene_excerpt) > 600 else scene_excerpt
+
+    characters = ", ".join(c.name for c in context.characters) if context.characters else ""
+    theme = context.theme_label or ""
+
+    prompt_parts = [
+        "Illustration prompt:",
+        "Create a single, high-quality, cinematic illustration that matches the following short story excerpt and theme.",
+        f"Scene excerpt: {scene_excerpt}",
+    ]
+
+    if characters:
+        prompt_parts.append(f"Characters present: {characters} (distinct visual traits, emotionally expressive)")
+    if theme:
+        prompt_parts.append(f"Theme: {theme}")
+
+    prompt_parts.extend([
+        "Focus on atmosphere, lighting, and emotion. Use a vivid, cinematic color palette.",
+        "Style: detailed digital painting, cinematic lighting, shallow depth of field. No text overlays.",
+        "Output: a single 1:1 or 4:3 scene suitable for a story thumbnail.",
+    ])
+
+    return "\n".join(part for part in prompt_parts if part)

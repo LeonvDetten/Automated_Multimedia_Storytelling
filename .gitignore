@@ -35,3 +35,6 @@ htmlcov/
 *.sqlite3
 *.db
 *.log
+
+# Pictures
+*.png

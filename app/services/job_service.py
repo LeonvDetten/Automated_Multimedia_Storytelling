@@ -9,6 +9,9 @@ from app.repositories.job_repository import get_job, update_job_state
 from app.schemas.episode import EpisodeCreate
 from app.storygen.openai_client import OpenAIClient
 from app.storygen.story_service import generate_story
+import base64
+import os
+import time
 
 
 def _payload_from_episode(db: Session, episode: Episode) -> EpisodeCreate:
@@ -75,6 +78,28 @@ def run_storygen_job(job_id: int) -> None:
 
             update_job_state(db, job_id, status="running", progress_pct=80, step="saving output")
             episode.script_text = result.get("text", "")
+            # Generate an image prompt and call the image model
+            image_prompt = result.get("image_prompt")
+            if image_prompt:
+                try:
+                    img_result = client.generate_image(image_prompt)
+                    b64 = img_result.get("b64")
+                    url = img_result.get("url")
+                    if b64:
+                        # ensure directory exists
+                        out_dir = os.path.join("app", "static", "generated")
+                        os.makedirs(out_dir, exist_ok=True)
+                        filename = f"episode_{episode.id}_{int(time.time())}.png"
+                        filepath = os.path.join(out_dir, filename)
+                        with open(filepath, "wb") as fh:
+                            fh.write(base64.b64decode(b64))
+                        episode.image_url = f"/static/generated/{filename}"
+                    elif url:
+                        # reference external URL directly
+                        episode.image_url = url
+                except Exception:
+                    # do not fail the whole job if image generation fails
+                    episode.image_url = None
             if payload.temperature is None:
                 episode.temperature_applied = None
             else:

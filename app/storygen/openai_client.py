@@ -3,6 +3,8 @@ from typing import Any
 
 from langfuse.openai import openai as langfuse_openai
 from openai import BadRequestError
+import base64
+from typing import Optional
 
 
 class OpenAIClient:
@@ -210,6 +212,64 @@ class OpenAIClient:
 
         self._apply_langfuse_env()
         return langfuse_openai.OpenAI(api_key=self.api_key)
+
+    def generate_image(self, prompt: str, *, size: str | None = None, model: str | None = None) -> dict[str, Optional[str]]:
+        """Call the OpenAI Images API (or equivalent) and return either a data b64 or a remote URL.
+
+        Returns a dict with keys `b64` and `url` where one may be None.
+        """
+
+        client = self._build_openai_client()
+        params: dict[str, Any] = {}
+        # allow overriding model (default to gpt-image-1-mini if not provided)
+        params["model"] = model or "gpt-image-1-mini"
+        params["prompt"] = prompt
+        if size:
+            params["size"] = size
+
+        # The exact method name can differ; try common patterns and fall back.
+        response = None
+        for method_name in ("images.generate", "images.create", "images.generate_image", "images.create_image"):
+            try:
+                # nested attribute access like client.images.generate
+                parts = method_name.split(".")
+                meth = client
+                for p in parts:
+                    meth = getattr(meth, p)
+                response = meth(**params)
+                break
+            except Exception:
+                response = None
+
+        if response is None:
+            raise RuntimeError("Image generation not supported by the OpenAI client in this environment")
+
+        # Try to extract base64 or URL robustly
+        resp_dict = OpenAIClient._as_dict(response) or {}
+        # common shapes: {data: [{b64_json: '...'}]} or {data: [{url: '...'}]}
+        data = resp_dict.get("data") or getattr(response, "data", None) or []
+        b64 = None
+        url = None
+        if data and isinstance(data, (list, tuple)):
+            first = data[0]
+            if isinstance(first, dict):
+                b64 = first.get("b64_json") or first.get("b64") or first.get("b64_data")
+                url = first.get("url")
+            else:
+                b64 = getattr(first, "b64_json", None) or getattr(first, "b64", None)
+                url = getattr(first, "url", None)
+
+        # Some clients return 'output'[0].content[0].b64_json etc.
+        if not b64 and not url:
+            outputs = resp_dict.get("output") or getattr(response, "output", []) or []
+            for item in outputs:
+                if isinstance(item, dict):
+                    for content in item.get("content", []) or []:
+                        if isinstance(content, dict) and content.get("type") == "image" and content.get("b64_json"):
+                            b64 = content.get("b64_json")
+                            break
+
+        return {"b64": b64, "url": url}
 
     def _apply_langfuse_env(self) -> None:
         """Expose Langfuse settings as environment vars for the wrapper."""

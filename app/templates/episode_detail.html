@@ -43,6 +43,12 @@
 
   <h3>Generated story</h3>
   {% if episode.script_text %}
+  {% if episode.image_url %}
+  <h3>Generated image</h3>
+  <div class="episode-image">
+    <img src="{{ episode.image_url }}" alt="Generated image" style="max-width:100%;height:auto;" />
+  </div>
+  {% endif %}
   <pre class="prompt-block">{{ episode.script_text }}</pre>
   {% else %}
   <p class="muted-text">No generated story yet.</p>
