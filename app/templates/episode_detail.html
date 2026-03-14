@@ -61,11 +61,20 @@
   {% if episode.script_text %}
   {% if episode.image_urls %}
   <h3>Generated images</h3>
-  <div class="episode-image-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
-    {% for img in episode.image_urls.split('||') %}
-    <div class="episode-image">
-      <img src="{{ img }}" alt="Generated image {{ loop.index }}" style="width:100%;height:auto;" />
-    </div>
+  {% set images = episode.image_urls.split('||') %}
+  {% set paras = episode.script_text.split('\n\n') %}
+  {% set total = paras|length %}
+  <div class="episode-image-grid">
+    {% for i in range(0, images|length) %}
+      {% set start = ((i * total) // (images|length)) %}
+      {% set end = (((i + 1) * total) // (images|length)) %}
+      {% set caption = paras[start:end]|join('\n\n') %}
+      <div class="image-card">
+        <div class="image-caption">{{ caption }}</div>
+        <div class="episode-image">
+          <img src="{{ images[i] }}" alt="Generated image {{ i+1 }}" />
+        </div>
+      </div>
     {% endfor %}
   </div>
   {% elif episode.image_url %}
@@ -74,7 +83,10 @@
     <img src="{{ episode.image_url }}" alt="Generated image" style="max-width:100%;height:auto;" />
   </div>
   {% endif %}
+  {# Only show the full story text when no images are available #}
+  {% if not episode.image_urls and not episode.image_url %}
   <pre class="prompt-block">{{ episode.script_text }}</pre>
+  {% endif %}
   {% else %}
   <p class="muted-text">No generated story yet.</p>
   {% endif %}

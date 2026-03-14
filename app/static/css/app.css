@@ -447,3 +447,44 @@ a {
     width: 100%;
   }
 }
+
+/* Small image cards with caption above */
+.episode-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+.episode-image-grid .image-card {
+  background: rgba(9,22,14,0.6);
+  padding: 0.6rem;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  overflow: hidden;
+}
+.image-caption {
+  font-size: 0.9rem;
+  color: var(--muted);
+  max-height: 6.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.episode-image img {
+  max-width: 160px;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block;
+}
+
+@media (max-width: 700px) {
+  .episode-image img {
+    max-width: 100%;
+  }
+}
