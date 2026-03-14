@@ -57,36 +57,76 @@ def build_prompt(context: StoryContext) -> str:
     return prompt
 
 
-def build_image_prompt(context: StoryContext, story_text: str) -> str:
-    """Build an image-generation prompt that matches the generated story.
+def _excerpt_for_slice(story_text: str, index: int, total: int) -> str:
+    """Return a short excerpt for the slice index (0-based) of the story_text."""
 
-    The prompt should be descriptive and focus on a single evocative scene
-    from the story, include characters and theme when available, and suggest
-    a vivid art style suitable for illustration.
+    text = story_text.strip()
+    if not text:
+        return ""
+
+    # Split by paragraphs to keep scene boundaries when possible
+    paragraphs = [p for p in text.split('\n\n') if p.strip()]
+    if len(paragraphs) >= total:
+        # choose paragraph slice
+        per = max(1, len(paragraphs) // total)
+        start = index * per
+        excerpt = " ".join(paragraphs[start : start + per])
+    else:
+        # fallback: split by character length
+        approx_len = max(120, len(text) // total)
+        start = index * approx_len
+        excerpt = text[start : start + approx_len]
+
+    excerpt = " ".join(excerpt.splitlines())
+    return (excerpt[:600] + "...") if len(excerpt) > 600 else excerpt
+
+
+def build_image_prompts(context: StoryContext, story_text: str, parts: int = 4) -> list[str]:
+    """Build a list of image-generation prompts dividing the story into `parts`.
+
+    Each prompt should describe a distinct moment (quarter) of the story while
+    requesting consistent characters and a unified visual style so the images
+    read as a coherent sequence.
     """
-
-    # Choose a short scene description from the start of the story_text
-    scene_excerpt = "".join(story_text.strip().splitlines()[:3])
-    scene_excerpt = (scene_excerpt[:600] + "...") if len(scene_excerpt) > 600 else scene_excerpt
 
     characters = ", ".join(c.name for c in context.characters) if context.characters else ""
     theme = context.theme_label or ""
 
-    prompt_parts = [
-        "Illustration prompt:",
-        "Create a single, high-quality, cinematic illustration that matches the following short story excerpt and theme.",
-        f"Scene excerpt: {scene_excerpt}",
-    ]
+    prompts: list[str] = []
+    for i in range(parts):
+        excerpt = _excerpt_for_slice(story_text, i, parts)
+        parts_desc = (
+            "opening/setting" if i == 0 else "inciting moment" if i == 1 else "climax" if i == parts - 2 else "resolution"
+        )
 
-    if characters:
-        prompt_parts.append(f"Characters present: {characters} (distinct visual traits, emotionally expressive)")
-    if theme:
-        prompt_parts.append(f"Theme: {theme}")
+        prompt_parts = [
+            "Illustration prompt:",
+            f"This is image {i+1} of {parts} illustrating the {parts_desc} of the same short story.",
+            f"Scene excerpt: {excerpt}",
+        ]
 
-    prompt_parts.extend([
-        "Focus on atmosphere, lighting, and emotion. Use a vivid, cinematic color palette.",
-        "Style: detailed digital painting, cinematic lighting, shallow depth of field. No text overlays.",
-        "Output: a single 1:1 or 4:3 scene suitable for a story thumbnail.",
-    ])
+        if characters:
+            prompt_parts.append(
+                f"Characters present: {characters}. Keep the same character appearances across all images (consistent clothing, colors, and distinguishing traits)."
+            )
+        if theme:
+            prompt_parts.append(f"Theme: {theme}")
 
-    return "\n".join(part for part in prompt_parts if part)
+        prompt_parts.extend(
+            [
+                "Visual guidance: maintain a consistent art style, color palette and recurring motifs so viewers recognize the sequence.",
+                "Style: detailed digital painting, cinematic lighting, emotionally expressive faces. No text overlays.",
+                "Output: square or 4:3 composition, small resolution acceptable (e.g. 512x512).",
+            ]
+        )
+
+        prompts.append("\n".join(part for part in prompt_parts if part))
+
+    return prompts
+
+
+def build_image_prompt(context: StoryContext, story_text: str) -> str:
+    """Backward-compatible single prompt (returns the first quarter)."""
+
+    prompts = build_image_prompts(context, story_text, parts=4)
+    return prompts[0] if prompts else ""

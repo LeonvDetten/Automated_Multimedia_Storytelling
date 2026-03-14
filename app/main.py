@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.router import api_router
 from app.core.config import get_settings
 from app.web.routes import router as web_router
+from app.db.session import ensure_episode_image_urls_column
 
 
 def create_app() -> FastAPI:
@@ -13,6 +14,11 @@ def create_app() -> FastAPI:
 
     settings = get_settings()
     app = FastAPI(title=settings.app_name)
+
+    @app.on_event("startup")
+    def _ensure_schema() -> None:
+        # Ensure runtime DB schema compatibility for `image_urls` column.
+        ensure_episode_image_urls_column()
 
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
     app.include_router(web_router)

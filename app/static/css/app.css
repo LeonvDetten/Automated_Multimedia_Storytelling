@@ -438,3 +438,12 @@ a {
     padding: 1.5rem;
   }
 }
+
+@media (max-width: 700px) {
+  .story-part {
+    flex-direction: column;
+  }
+  .story-image {
+    width: 100%;
+  }
+}

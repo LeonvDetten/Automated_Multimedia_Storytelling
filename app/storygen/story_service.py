@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.schemas.episode import EpisodeCreate
 from app.storygen.openai_client import OpenAIClient
-from app.storygen.prompt_builder import build_prompt, build_image_prompt
+from app.storygen.prompt_builder import build_prompt, build_image_prompts
 from app.storygen.story_context import build_story_context
 
 
@@ -26,9 +26,9 @@ def generate_story(db: Session, payload: EpisodeCreate, openai_client: OpenAICli
         max_output_tokens=payload.max_output_tokens,
     )
 
-    # Build an image-generation prompt based on the generated story (if any)
+    # Build image-generation prompts (4 parts) based on the generated story (if any)
     text = response.get("text", "")
-    image_prompt = build_image_prompt(context, text) if text else ""
+    image_prompts = build_image_prompts(context, text, parts=4) if text else []
 
-    response["image_prompt"] = image_prompt
+    response["image_prompts"] = image_prompts
     return response

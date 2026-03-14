@@ -27,6 +27,8 @@ class Episode(Base):
     summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     script_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     image_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    # New: store multiple generated image URLs (joined by '||') for sequence images
+    image_urls: Mapped[str | None] = mapped_column(Text, nullable=True)
     target_duration_sec: Mapped[int] = mapped_column(Integer, nullable=False, default=15, server_default="15")
     temperature: Mapped[float | None] = mapped_column(Float, nullable=True)
     max_output_tokens: Mapped[int | None] = mapped_column(Integer, nullable=True)

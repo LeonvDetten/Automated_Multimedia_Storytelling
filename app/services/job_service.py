@@ -78,28 +78,46 @@ def run_storygen_job(job_id: int) -> None:
 
             update_job_state(db, job_id, status="running", progress_pct=80, step="saving output")
             episode.script_text = result.get("text", "")
-            # Generate an image prompt and call the image model
-            image_prompt = result.get("image_prompt")
-            if image_prompt:
-                try:
-                    img_result = client.generate_image(image_prompt)
-                    b64 = img_result.get("b64")
-                    url = img_result.get("url")
-                    if b64:
-                        # ensure directory exists
-                        out_dir = os.path.join("app", "static", "generated")
-                        os.makedirs(out_dir, exist_ok=True)
-                        filename = f"episode_{episode.id}_{int(time.time())}.png"
-                        filepath = os.path.join(out_dir, filename)
-                        with open(filepath, "wb") as fh:
-                            fh.write(base64.b64decode(b64))
-                        episode.image_url = f"/static/generated/{filename}"
-                    elif url:
-                        # reference external URL directly
-                        episode.image_url = url
-                except Exception:
-                    # do not fail the whole job if image generation fails
-                    episode.image_url = None
+            # Generate image prompts (may be multiple) and call the image model
+            image_prompts = result.get("image_prompts") or []
+            saved_urls: list[str] = []
+            if image_prompts:
+                out_dir = os.path.join("app", "static", "generated")
+                os.makedirs(out_dir, exist_ok=True)
+                for idx, img_prompt in enumerate(image_prompts):
+                    try:
+                        # request a smaller resolution for speed and compact display
+                        # use a supported image size for the OpenAI image model
+                        img_result = client.generate_image(img_prompt, size="1024x1024")
+                        b64 = img_result.get("b64")
+                        url = img_result.get("url")
+                        if b64:
+                            filename = f"episode_{episode.id}_{idx}_{int(time.time())}.png"
+                            filepath = os.path.join(out_dir, filename)
+                            with open(filepath, "wb") as fh:
+                                fh.write(base64.b64decode(b64))
+                            saved_urls.append(f"/static/generated/{filename}")
+                        elif url:
+                            saved_urls.append(url)
+                    except Exception as exc:
+                        # record the failure in the job state and continue with remaining prompts
+                        try:
+                            update_job_state(db, job_id, status="running", progress_pct=80, step=f"image failed {idx+1}", error_message=str(exc))
+                        except Exception:
+                            pass
+                        continue
+
+                # persist the list of saved urls (join with separator for template parsing)
+                if saved_urls:
+                    episode.image_urls = "||".join(saved_urls)
+                    # keep the first image_url for backward compatibility
+                    episode.image_url = saved_urls[0]
+                else:
+                    episode.image_urls = None
+                    try:
+                        update_job_state(db, job_id, status="running", progress_pct=80, step="image generation skipped", error_message="no images produced")
+                    except Exception:
+                        pass
             if payload.temperature is None:
                 episode.temperature_applied = None
             else:
@@ -107,7 +125,10 @@ def run_storygen_job(job_id: int) -> None:
             episode.status = "generated"
             db.commit()
 
-            update_job_state(db, job_id, status="completed", progress_pct=100, step="completed")
+            # Preserve any existing error_message set during image generation
+            job_obj = get_job(db, job_id)
+            existing_error = job_obj.error_message if job_obj else None
+            update_job_state(db, job_id, status="completed", progress_pct=100, step="completed", error_message=existing_error)
         except Exception as exc:  # noqa: BLE001 - we want to surface any generation failure
             update_job_state(
                 db,

@@ -219,37 +219,82 @@ class OpenAIClient:
         Returns a dict with keys `b64` and `url` where one may be None.
         """
 
-        client = self._build_openai_client()
+        # Try Langfuse-instrumented client first (if available), otherwise
+        # fall back to the official `openai` package (try common method names).
         params: dict[str, Any] = {}
-        # allow overriding model (default to gpt-image-1-mini if not provided)
         params["model"] = model or "gpt-image-1-mini"
         params["prompt"] = prompt
         if size:
             params["size"] = size
 
-        # The exact method name can differ; try common patterns and fall back.
         response = None
-        for method_name in ("images.generate", "images.create", "images.generate_image", "images.create_image"):
+        last_exc: Exception | None = None
+
+        # Attempt Langfuse client when possible
+        try:
             try:
-                # nested attribute access like client.images.generate
-                parts = method_name.split(".")
-                meth = client
-                for p in parts:
-                    meth = getattr(meth, p)
-                response = meth(**params)
-                break
+                client = self._build_openai_client()
+            except Exception:
+                client = None
+
+            if client is not None:
+                for method_name in ("images.generate", "images.create", "images.generate_image", "images.create_image"):
+                    try:
+                        parts = method_name.split(".")
+                        meth = client
+                        for p in parts:
+                            meth = getattr(meth, p)
+                        response = meth(**params)
+                        break
+                    except Exception as exc:
+                        response = None
+                        last_exc = exc
+        except Exception:
+            response = None
+
+        # If langfuse client didn't return an image, try the official openai package.
+        if response is None:
+            try:
+                # Ensure OPENAI_API_KEY env var is set before importing the library
+                if self.api_key:
+                    os.environ.setdefault("OPENAI_API_KEY", self.api_key)
+                import openai as openai_lib
+
+                # Try multiple method names across versions
+                try:
+                    # modern shape: openai.images.generate
+                    if hasattr(openai_lib, "images") and hasattr(openai_lib.images, "generate"):
+                        response = openai_lib.images.generate(model=params["model"], prompt=params["prompt"], size=params.get("size"))
+                    elif hasattr(openai_lib, "Image") and hasattr(openai_lib.Image, "create"):
+                        response = openai_lib.Image.create(prompt=params["prompt"], n=1, size=params.get("size"))
+                    elif hasattr(openai_lib, "images") and hasattr(openai_lib.images, "create"):
+                        response = openai_lib.images.create(model=params["model"], prompt=params["prompt"], size=params.get("size"))
+                    else:
+                        response = None
+                except Exception as exc:
+                    response = None
+                    last_exc = exc
             except Exception:
                 response = None
+                # capture import/build error
+                try:
+                    last_exc = exc  # type: ignore[name-defined]
+                except Exception:
+                    last_exc = None
 
         if response is None:
-            raise RuntimeError("Image generation not supported by the OpenAI client in this environment")
+            msg = "Image generation not supported by the OpenAI client in this environment"
+            if last_exc:
+                msg = f"{msg}; last error: {type(last_exc).__name__}: {last_exc}"
+            raise RuntimeError(msg)
 
-        # Try to extract base64 or URL robustly
+        # Try to extract base64 or URL robustly from many possible response shapes
         resp_dict = OpenAIClient._as_dict(response) or {}
-        # common shapes: {data: [{b64_json: '...'}]} or {data: [{url: '...'}]}
-        data = resp_dict.get("data") or getattr(response, "data", None) or []
         b64 = None
         url = None
+
+        # common official shapes: {'data': [{'b64_json': '...'}]} or {'data': [{'url': '...'}]}
+        data = resp_dict.get("data") or getattr(response, "data", None) or []
         if data and isinstance(data, (list, tuple)):
             first = data[0]
             if isinstance(first, dict):
@@ -259,14 +304,15 @@ class OpenAIClient:
                 b64 = getattr(first, "b64_json", None) or getattr(first, "b64", None)
                 url = getattr(first, "url", None)
 
-        # Some clients return 'output'[0].content[0].b64_json etc.
+        # Some wrappers return nested output content items
         if not b64 and not url:
             outputs = resp_dict.get("output") or getattr(response, "output", []) or []
             for item in outputs:
                 if isinstance(item, dict):
                     for content in item.get("content", []) or []:
-                        if isinstance(content, dict) and content.get("type") == "image" and content.get("b64_json"):
-                            b64 = content.get("b64_json")
+                        if isinstance(content, dict) and content.get("type") == "image":
+                            b64 = content.get("b64_json") or content.get("b64")
+                            url = content.get("image_url") or content.get("url")
                             break
 
         return {"b64": b64, "url": url}

@@ -41,9 +41,34 @@
   <h3>User prompt</h3>
   <pre class="prompt-block">{{ episode.user_prompt }}</pre>
 
+  <h3>Job status</h3>
+  <div class="job-status">
+    {% if episode.jobs %}
+      {% for job in episode.jobs %}
+        <div class="job-entry">
+          <p><strong>Job {{ job.id }}:</strong> {{ job.status }} · {{ job.step }} · {{ job.progress_pct }}%</p>
+          {% if job.error_message %}
+            <p style="color:var(--danger);">Error: {{ job.error_message }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted-text">No job history</p>
+    {% endif %}
+  </div>
+
   <h3>Generated story</h3>
   {% if episode.script_text %}
-  {% if episode.image_url %}
+  {% if episode.image_urls %}
+  <h3>Generated images</h3>
+  <div class="episode-image-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+    {% for img in episode.image_urls.split('||') %}
+    <div class="episode-image">
+      <img src="{{ img }}" alt="Generated image {{ loop.index }}" style="width:100%;height:auto;" />
+    </div>
+    {% endfor %}
+  </div>
+  {% elif episode.image_url %}
   <h3>Generated image</h3>
   <div class="episode-image">
     <img src="{{ episode.image_url }}" alt="Generated image" style="max-width:100%;height:auto;" />
