@@ -462,21 +462,20 @@ a {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  align-items: center;
-  overflow: hidden;
+  align-items: stretch;
+  overflow: visible;
 }
 .image-caption {
   font-size: 0.9rem;
   color: var(--muted);
-  max-height: 6.5rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
   width: 100%;
   white-space: pre-wrap;
   word-break: break-word;
+  overflow: visible;
+  max-height: none;
 }
 .episode-image img {
-  max-width: 160px;
+  max-width: 100%;
   width: 100%;
   height: auto;
   border-radius: 8px;
