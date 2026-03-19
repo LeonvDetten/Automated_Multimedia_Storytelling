@@ -47,12 +47,12 @@ body::before {
 
 body::after {
   background:
-    radial-gradient(circle at 10% 90%, rgba(10, 20, 15, 0.8), transparent 45%),
-    radial-gradient(circle at 30% 95%, rgba(10, 20, 15, 0.9), transparent 50%),
-    radial-gradient(circle at 60% 92%, rgba(10, 20, 15, 0.85), transparent 55%),
-    radial-gradient(circle at 85% 96%, rgba(10, 20, 15, 0.9), transparent 60%);
+    radial-gradient(circle at 10% 90%, rgba(10, 20, 15, 0.45), transparent 40%),
+    radial-gradient(circle at 30% 95%, rgba(10, 20, 15, 0.5), transparent 45%),
+    radial-gradient(circle at 60% 92%, rgba(10, 20, 15, 0.45), transparent 50%),
+    radial-gradient(circle at 85% 96%, rgba(10, 20, 15, 0.5), transparent 55%);
   mix-blend-mode: multiply;
-  opacity: 0.6;
+  opacity: 0.35;
 }
 
 .header {
