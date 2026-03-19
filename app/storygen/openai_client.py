@@ -224,6 +224,7 @@ class OpenAIClient:
         params: dict[str, Any] = {}
         params["model"] = model or "gpt-image-1-mini"
         params["prompt"] = prompt
+        params["quality"] = "low"
         if size:
             params["size"] = size
 
