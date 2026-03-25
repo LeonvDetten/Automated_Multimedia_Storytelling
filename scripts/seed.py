@@ -26,24 +26,30 @@ THEMES = [
 
 DEMO_CHARACTERS = [
     {
-        "name": "Üpsti Üüüng",
+        "name": "Oskar",
         "speech_style": "Rhythmic, punchy, and electric",
         "description": "An energetic rapper who charges every moment with lyrical fire and unstoppable groove.",
         "traits_json": {"temperament": "vibrant", "role": "hype navigator"},
     },
     {
-        "name": "Zinkus Aktiv",
+        "name": "Tim",
         "speech_style": "Quiet, reflective, and poetic",
         "description": "An introverted literature student who observes deeply, speaks softly, and drops profound insights like hidden bookmarks in old novels.",
         "traits_json": {"temperament": "thoughtful", "role": "silent analyst"},
     },
     {
-        "name": "Bongo McWobble",
+        "name": "Marc",
         "speech_style": "Chaotic, playful, and oddly philosophical",
         "description": "A walking festival of bad ideas and brilliant accidents who solves problems with questionable logic, kitchen utensils, and unexpected wisdom.",
         "traits_json": {"temperament": "chaotic-good", "role": "unofficial wildcard"},
     },
 ]
+
+LEGACY_CHARACTER_RENAMES = {
+    "Üpsti Üüüng": "Oskar",
+    "Zinkus Aktiv": "Tim",
+    "Bongo McWobble": "Marc",
+}
 
 
 def seed_themes() -> None:
@@ -63,6 +69,17 @@ def seed_characters() -> None:
 
     with SessionLocal() as db:
         existing_names = set(db.scalars(select(Character.name)).all())
+        # Keep existing demo rows in sync when seeded names change.
+        for old_name, new_name in LEGACY_CHARACTER_RENAMES.items():
+            if old_name not in existing_names or new_name in existing_names:
+                continue
+            legacy_character = db.scalar(select(Character).where(Character.name == old_name))
+            if legacy_character is None:
+                continue
+            legacy_character.name = new_name
+            existing_names.remove(old_name)
+            existing_names.add(new_name)
+
         for payload in DEMO_CHARACTERS:
             if payload["name"] in existing_names:
                 continue

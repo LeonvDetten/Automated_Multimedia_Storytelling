@@ -17,13 +17,28 @@ cp .env.example .env
 
 Update `.env` with your local PostgreSQL credentials if needed.
 
-## 2) Database migration
+## 2) Start PostgreSQL (macOS)
+
+If you installed PostgreSQL with Homebrew:
+
+```bash
+brew services start postgresql@16
+pg_isready -h localhost -p 5432
+```
+
+Expected check output:
+
+```text
+localhost:5432 - accepting connections
+```
+
+## 3) Database migration
 
 ```bash
 alembic upgrade head
 ```
 
-## 3) Seed initial data
+## 4) Seed initial data
 
 ```bash
 python -m scripts.seed
@@ -34,7 +49,7 @@ This inserts:
 - demo characters
 - one default story series
 
-## 4) Run the app
+## 5) Run the app
 
 ```bash
 uvicorn app.main:app --reload
@@ -45,7 +60,7 @@ Open:
 - API docs: `http://127.0.0.1:8000/docs`
 - Health: `http://127.0.0.1:8000/health`
 
-## 5) Phase 1 API endpoints
+## 6) Phase 1 API endpoints
 
 - `GET /api/themes`
 - `GET /api/characters`
@@ -55,14 +70,14 @@ Open:
 - `GET /api/episodes/{episode_id}`
 - `GET /api/jobs/{job_id}`
 
-## 6) Web flow (Phase 1)
+## 7) Web flow (Phase 1)
 
 - `GET /` shows the episode input form.
 - `POST /web/episodes/create` stores episode + job.
 - `GET /web/jobs/{job_id}/status` is polled by HTMX.
 - `GET /web/episodes/{episode_id}` shows episode detail.
 
-## 7) Architecture notes
+## 8) Architecture notes
 
 ### Project structure
 
@@ -87,7 +102,7 @@ Background task simulation intentionally keeps logic simple for Phase 1:
 
 This prepares the codebase for real async workers in Phase 2+.
 
-## 8) Testing
+## 9) Testing
 
 Run tests with:
 
