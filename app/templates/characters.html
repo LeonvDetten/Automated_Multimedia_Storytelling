@@ -63,7 +63,7 @@
         </label>
         <label>
           Traits JSON (optional)
-          <textarea name="traits_json" rows="3">{{ item.traits_json }}</textarea>
+          <textarea name="traits_json" rows="3">{{ item.traits_json | tojson }}</textarea>
         </label>
         <label class="checkbox-row">
           <input type="checkbox" name="active" {% if item.active %}checked{% endif %} />

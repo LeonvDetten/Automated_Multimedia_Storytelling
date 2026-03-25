@@ -1,5 +1,6 @@
 """Server-rendered web routes for phase 1."""
 
+import ast
 import json
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Form, HTTPException, Request
@@ -176,6 +177,31 @@ def _render_characters_page(request: Request, db: Session, message: str | None =
     return templates.TemplateResponse("characters.html", context)
 
 
+def _parse_traits_json(value: str) -> tuple[dict, str | None]:
+    """Parse traits text from forms into a dict.
+
+    Accept strict JSON first and fall back to Python-dict style input
+    (single quotes) to stay compatible with legacy form values.
+    """
+
+    text_value = value.strip()
+    if not text_value:
+        return {}, None
+
+    try:
+        parsed = json.loads(text_value)
+    except json.JSONDecodeError:
+        try:
+            parsed = ast.literal_eval(text_value)
+        except (ValueError, SyntaxError):
+            return {}, "Traits JSON is invalid."
+
+    if not isinstance(parsed, dict):
+        return {}, "Traits JSON must be an object (key/value map)."
+
+    return parsed, None
+
+
 @router.get("/web/characters", response_class=HTMLResponse)
 def characters_manage(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
     """Render the character management page."""
@@ -195,10 +221,9 @@ def character_create_action(
 ) -> HTMLResponse:
     """Create a character from the management page."""
 
-    try:
-        traits = json.loads(traits_json) if traits_json.strip() else {}
-    except json.JSONDecodeError:
-        return _render_characters_page(request, db, "Traits JSON is invalid.", "error")
+    traits, traits_error = _parse_traits_json(traits_json)
+    if traits_error:
+        return _render_characters_page(request, db, traits_error, "error")
 
     payload = {
         "name": name.strip(),
@@ -232,10 +257,9 @@ def character_update_action(
     if not character:
         return _render_characters_page(request, db, "Character not found.", "error")
 
-    try:
-        traits = json.loads(traits_json) if traits_json.strip() else {}
-    except json.JSONDecodeError:
-        return _render_characters_page(request, db, "Traits JSON is invalid.", "error")
+    traits, traits_error = _parse_traits_json(traits_json)
+    if traits_error:
+        return _render_characters_page(request, db, traits_error, "error")
 
     update_character(
         db,
